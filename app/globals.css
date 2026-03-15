@@ -5,9 +5,199 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-white text-gray-900;
+    background-color: #FAF6F1;
+    color: #0F0F0F;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  @media (pointer: coarse) {
+    body {
+      cursor: auto;
+    }
+  }
+
+  ::selection {
+    background: rgba(196, 30, 58, 0.15);
+    color: #0F0F0F;
+  }
+
+  ::-webkit-scrollbar {
+    width: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FAF6F1;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #C41E3A;
+    border-radius: 10px;
+  }
+}
+
+@layer components {
+  /* ─── CUSTOM CURSOR ─── */
+  .custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+    z-index: 99999;
+    mix-blend-mode: difference;
+    transition: width 0.3s ease, height 0.3s ease;
+  }
+  .custom-cursor .cursor-dot {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: white;
+  }
+  .custom-cursor.hovering {
+    width: 48px;
+    height: 48px;
+  }
+
+  @media (pointer: coarse) {
+    .custom-cursor {
+      display: none;
+    }
+  }
+
+  /* ─── BUTTONS ─── */
+  .btn-fill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 44px;
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: #C41E3A;
+    color: white;
+    border: none;
+    cursor: none;
+    overflow: hidden;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+  }
+  .btn-fill:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(196, 30, 58, 0.35);
+  }
+  @media (pointer: coarse) {
+    .btn-fill { cursor: pointer; }
+  }
+
+  .btn-outline {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 44px;
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: transparent;
+    color: #0F0F0F;
+    border: 1.5px solid #0F0F0F;
+    cursor: none;
+    overflow: hidden;
+    transition: all 0.4s ease;
+  }
+  .btn-outline:hover {
+    background: #0F0F0F;
+    color: #FAF6F1;
+    transform: translateY(-3px);
+  }
+  @media (pointer: coarse) {
+    .btn-outline { cursor: pointer; }
+  }
+
+  .btn-outline-light {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 44px;
+    font-family: var(--font-dm-sans), system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: transparent;
+    color: white;
+    border: 1.5px solid rgba(255,255,255,0.3);
+    cursor: none;
+    overflow: hidden;
+    transition: all 0.4s ease;
+  }
+  .btn-outline-light:hover {
+    background: white;
+    color: #0F0F0F;
+    border-color: white;
+    transform: translateY(-3px);
+  }
+  @media (pointer: coarse) {
+    .btn-outline-light { cursor: pointer; }
+  }
+
+  /* ─── SCROLLBAR HIDE ─── */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ─── IMAGE REVEAL ─── */
+  .img-reveal {
+    position: relative;
+    overflow: hidden;
+  }
+  .img-reveal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.08) 45%,
+      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.08) 55%,
+      transparent 60%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.8s ease;
+  }
+  .img-reveal:hover::after {
+    transform: translateX(100%);
+  }
+
+  /* ─── SECTION STYLES ─── */
+  .section-cream {
+    background: #FAF6F1;
+    color: #0F0F0F;
+  }
+  .section-dark {
+    background: #0F0F0F;
+    color: #FAF6F1;
+  }
+  .section-red {
+    background: #C41E3A;
+    color: white;
   }
 }

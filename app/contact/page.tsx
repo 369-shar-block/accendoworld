@@ -1,9 +1,57 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { useState } from "react";
+
+/* ─── ANIMATION VARIANTS ─── */
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      delay: i * 0.12,
+      ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
+    },
+  }),
+};
+
+/* ─── CONTACT INFO DATA ─── */
+
+const infoCards = [
+  {
+    title: "Email",
+    body: "info@accendoworld.com",
+    href: "mailto:info@accendoworld.com",
+    isLink: true,
+  },
+  {
+    title: "Shipping",
+    body: "Global shipping available worldwide",
+    isLink: false,
+  },
+  {
+    title: "Response Time",
+    body: "We respond within 24–48 hours",
+    isLink: false,
+  },
+];
+
+/* ─── PRODUCT STRIP IMAGES ─── */
+
+const stripImages = [
+  { src: "/products/new-02.jpeg", alt: "Galaxy Sky Blue Clogs" },
+  { src: "/products/IMG-20251107-WA0002.jpg", alt: "Designer Slides" },
+  { src: "/products/new-48.jpeg", alt: "Carren Lilac Slides" },
+];
+
+/* ─── CONTACT PAGE ─── */
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -12,66 +60,117 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission (could integrate with email service later)
-    alert("Thank you for your message! We'll get back to you soon.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
-  };
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitted(true);
+    setFormData({ name: "", email: "", subject: "", message: "" });
+    setTimeout(() => setSubmitted(false), 4500);
+  };
+
+  const inputBase =
+    "w-full px-0 py-4 bg-transparent border-b border-brand-black/15 text-brand-black text-sm font-sans placeholder:text-brand-muted/60 focus:outline-none focus:border-brand-red transition-colors duration-300 cursor-hover";
+
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen section-cream">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-gradient-to-br from-peach-50 to-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+      {/* ═══════════════════════════════════════
+          HERO — Cream bg, clipPath reveal
+          ═══════════════════════════════════════ */}
+      <section className="pt-40 pb-20 section-cream">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-6xl font-bold text-gray-900 mb-6"
+            transition={{ duration: 0.6 }}
+            className="text-[10px] tracking-[0.5em] uppercase text-brand-red mb-5 font-sans"
           >
             Get in Touch
-          </motion.h1>
+          </motion.p>
+
+          <div className="overflow-hidden mb-4">
+            <motion.h1
+              initial={{ clipPath: "inset(100% 0 0 0)" }}
+              animate={{ clipPath: "inset(0% 0 0 0)" }}
+              transition={{
+                duration: 0.9,
+                delay: 0.15,
+                ease: [0.25, 0.46, 0.45, 0.94] as [
+                  number,
+                  number,
+                  number,
+                  number
+                ],
+              }}
+              className="font-serif text-5xl sm:text-6xl lg:text-8xl font-bold text-brand-black leading-[1.0]"
+            >
+              Contact Us
+            </motion.h1>
+          </div>
+
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-gray-600"
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="text-brand-muted text-base sm:text-lg font-sans max-w-sm"
           >
-            We'd love to hear from you. Reach out for inquiries, partnerships,
-            or just to say hello!
+            We&rsquo;d love to hear from you
           </motion.p>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
+      {/* ═══════════════════════════════════════
+          MAIN CONTENT — Two-column: form + info
+          ═══════════════════════════════════════ */}
+      <section className="py-24 md:py-32 section-cream">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
+
+            {/* ── Left: Contact Form ── */}
+            <div className="lg:col-span-7">
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+                className="font-serif text-2xl sm:text-3xl text-brand-black mb-12"
+              >
                 Send Us a Message
-              </h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
+              </motion.h2>
+
+              {/* Success state */}
+              {submitted && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-10 px-6 py-4 border border-brand-red/20 bg-brand-red/5"
+                >
+                  <p className="text-brand-red text-sm font-sans tracking-wide">
+                    Thank you — we&rsquo;ll get back to you within 24–48 hours.
+                  </p>
+                </motion.div>
+              )}
+
+              <motion.form
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                onSubmit={handleSubmit}
+                className="space-y-0"
+              >
+                {/* Name */}
+                <motion.div custom={0} variants={fadeUp} className="mb-8">
                   <label
                     htmlFor="name"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-[9px] tracking-[0.35em] uppercase text-brand-muted mb-2 font-sans"
                   >
                     Name
                   </label>
@@ -82,14 +181,16 @@ export default function ContactPage() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-peach-500 focus:border-transparent transition-all"
+                    placeholder="Your full name"
+                    className={inputBase}
                   />
-                </div>
+                </motion.div>
 
-                <div>
+                {/* Email */}
+                <motion.div custom={1} variants={fadeUp} className="mb-8">
                   <label
                     htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-[9px] tracking-[0.35em] uppercase text-brand-muted mb-2 font-sans"
                   >
                     Email
                   </label>
@@ -100,14 +201,16 @@ export default function ContactPage() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-peach-500 focus:border-transparent transition-all"
+                    placeholder="your@email.com"
+                    className={inputBase}
                   />
-                </div>
+                </motion.div>
 
-                <div>
+                {/* Subject */}
+                <motion.div custom={2} variants={fadeUp} className="mb-8">
                   <label
                     htmlFor="subject"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-[9px] tracking-[0.35em] uppercase text-brand-muted mb-2 font-sans"
                   >
                     Subject
                   </label>
@@ -118,14 +221,16 @@ export default function ContactPage() {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-peach-500 focus:border-transparent transition-all"
+                    placeholder="What's this about?"
+                    className={inputBase}
                   />
-                </div>
+                </motion.div>
 
-                <div>
+                {/* Message */}
+                <motion.div custom={3} variants={fadeUp} className="mb-10">
                   <label
                     htmlFor="message"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-[9px] tracking-[0.35em] uppercase text-brand-muted mb-2 font-sans"
                   >
                     Message
                   </label>
@@ -136,115 +241,173 @@ export default function ContactPage() {
                     onChange={handleChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-peach-500 focus:border-transparent transition-all resize-none"
-                  ></textarea>
-                </div>
+                    placeholder="Tell us more..."
+                    className={`${inputBase} resize-none`}
+                  />
+                </motion.div>
 
-                <button
-                  type="submit"
-                  className="w-full px-8 py-4 bg-gray-900 text-white rounded-full font-semibold hover:bg-gray-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
-                  Send Message
-                </button>
-              </form>
-            </motion.div>
+                {/* Submit */}
+                <motion.div custom={4} variants={fadeUp}>
+                  <button type="submit" className="btn-fill cursor-hover">
+                    Send Message
+                  </button>
+                </motion.div>
+              </motion.form>
+            </div>
 
-            {/* Contact Information */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-8"
-            >
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                  Contact Information
-                </h2>
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-peach-100 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-6 h-6 text-peach-600"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
+            {/* ── Right: Info Cards ── */}
+            <div className="lg:col-span-5">
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7 }}
+                className="font-serif text-2xl sm:text-3xl text-brand-black mb-12"
+              >
+                Contact Information
+              </motion.h2>
+
+              <div className="space-y-5">
+                {infoCards.map((card, index) => (
+                  <motion.div
+                    key={card.title}
+                    initial={{ opacity: 0, y: 24 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{
+                      duration: 0.6,
+                      delay: index * 0.12,
+                      ease: [0.25, 0.46, 0.45, 0.94] as [
+                        number,
+                        number,
+                        number,
+                        number
+                      ],
+                    }}
+                    className="bg-cream-dark px-8 py-7 group"
+                  >
+                    {/* Red accent line */}
+                    <div className="w-6 h-px bg-brand-red mb-4" />
+
+                    <p className="text-[9px] tracking-[0.35em] uppercase text-brand-muted mb-2 font-sans">
+                      {card.title}
+                    </p>
+
+                    {card.isLink && card.href ? (
                       <a
-                        href="mailto:info@accendoworld.com"
-                        className="text-gray-600 hover:text-peach-600 transition-colors"
+                        href={card.href}
+                        className="font-sans text-sm text-brand-black/80 hover:text-brand-red transition-colors duration-300 cursor-hover"
                       >
-                        info@accendoworld.com
+                        {card.body}
                       </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-peach-100 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-6 h-6 text-peach-600"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Global Reach
-                      </h3>
-                      <p className="text-gray-600">
-                        We ship worldwide, bringing comfort to your doorstep
-                        wherever you are.
+                    ) : (
+                      <p className="font-sans text-sm text-brand-black/80">
+                        {card.body}
                       </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0 w-12 h-12 bg-peach-100 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-6 h-6 text-peach-600"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        Response Time
-                      </h3>
-                      <p className="text-gray-600">
-                        We typically respond within 24-48 hours on business days.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                    )}
+                  </motion.div>
+                ))}
               </div>
+            </div>
 
-              {/* Image */}
-              <div className="rounded-2xl overflow-hidden shadow-xl">
-                <img
-                  src="/products/IMG-20251026-WA0024.jpg"
-                  alt="ACCENDO products"
-                  className="w-full h-64 object-cover"
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          PRODUCT IMAGE STRIP — Visual break
+          ═══════════════════════════════════════ */}
+      <section className="py-16 section-cream overflow-hidden">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <div className="grid grid-cols-3 gap-4 lg:gap-6">
+            {stripImages.map((img, index) => (
+              <motion.div
+                key={img.src}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  duration: 0.7,
+                  delay: index * 0.12,
+                  ease: [0.25, 0.46, 0.45, 0.94] as [
+                    number,
+                    number,
+                    number,
+                    number
+                  ],
+                }}
+                className="relative aspect-[3/4] overflow-hidden"
+              >
+                <Image
+                  src={img.src}
+                  alt={img.alt}
+                  fill
+                  className="object-cover transition-transform duration-[1.2s] hover:scale-105"
                 />
-              </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          LOCATION NOTE — Dark bg
+          ═══════════════════════════════════════ */}
+      <section className="py-24 md:py-32 section-dark">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <div className="text-center max-w-2xl mx-auto">
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-[10px] tracking-[0.5em] uppercase text-brand-red mb-5 font-sans"
+            >
+              Our Reach
+            </motion.p>
+
+            <motion.h2
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{
+                duration: 0.8,
+                delay: 0.1,
+                ease: [0.25, 0.46, 0.45, 0.94] as [
+                  number,
+                  number,
+                  number,
+                  number
+                ],
+              }}
+              className="font-serif text-4xl sm:text-5xl lg:text-6xl text-cream mb-8 leading-tight"
+            >
+              Based in India,
+              <br />
+              <span className="italic">Serving the World</span>
+            </motion.h2>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+              className="text-cream/40 text-base leading-relaxed font-sans mb-10"
+            >
+              From our workshop in India, ACCENDO ships premium comfort
+              footwear to customers across the globe. No matter where you are,
+              a step ahead is just an order away.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <Link href="/collections" className="btn-outline-light cursor-hover">
+                Shop Collections
+              </Link>
             </motion.div>
           </div>
         </div>

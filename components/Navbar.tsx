@@ -1,117 +1,171 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/collections", label: "Collections" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+];
 
 export default function Navbar() {
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   return (
-    <nav className="fixed w-full bg-white/95 backdrop-blur-sm z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="text-3xl font-bold text-gray-900">
-              ACCENDO
-            </div>
-            <div className="hidden sm:block text-xs text-gray-600 font-medium">
-              A STEP AHEAD
-            </div>
-          </Link>
+    <>
+      <nav
+        className={`fixed w-full z-50 transition-all duration-700 ${
+          isScrolled
+            ? "bg-cream/90 backdrop-blur-2xl shadow-[0_1px_0_rgba(15,15,15,0.06)]"
+            : "bg-transparent"
+        }`}
+      >
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <div className="flex justify-between items-center h-20 lg:h-24">
+            <Link href="/" className="relative z-50 cursor-hover">
+              <span
+                className={`font-serif text-2xl lg:text-[28px] font-bold tracking-[0.05em] transition-colors duration-500 ${
+                  isOpen ? "text-cream" : "text-brand-black"
+                }`}
+              >
+                ACCENDO
+              </span>
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-gray-700 hover:text-peach-600 transition-colors font-medium"
+            <div className="hidden md:flex items-center gap-12">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`relative text-[11px] font-sans tracking-[0.25em] uppercase transition-colors duration-300 group cursor-hover ${
+                    pathname === link.href
+                      ? "text-brand-red"
+                      : "text-brand-black/50 hover:text-brand-black"
+                  }`}
+                >
+                  {link.label}
+                  <span
+                    className={`absolute -bottom-1 left-0 h-px bg-brand-red transition-all duration-500 ${
+                      pathname === link.href
+                        ? "w-full"
+                        : "w-0 group-hover:w-full"
+                    }`}
+                  />
+                </Link>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden relative z-50 w-10 h-10 flex flex-col justify-center items-center gap-[5px] cursor-hover"
+              aria-label="Toggle menu"
             >
-              Home
-            </Link>
-            <Link
-              href="/collections"
-              className="text-gray-700 hover:text-peach-600 transition-colors font-medium"
-            >
-              Collections
-            </Link>
-            <Link
-              href="/about"
-              className="text-gray-700 hover:text-peach-600 transition-colors font-medium"
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-              className="text-gray-700 hover:text-peach-600 transition-colors font-medium"
-            >
-              Contact
-            </Link>
+              <motion.span
+                animate={
+                  isOpen
+                    ? { rotate: 45, y: 7, width: 24 }
+                    : { rotate: 0, y: 0, width: 20 }
+                }
+                transition={{ duration: 0.3 }}
+                className={`h-[1.5px] block origin-center transition-colors duration-300 ${
+                  isOpen ? "bg-cream" : "bg-brand-black"
+                }`}
+                style={{ width: 20 }}
+              />
+              <motion.span
+                animate={
+                  isOpen
+                    ? { opacity: 0, x: -10 }
+                    : { opacity: 1, x: 0 }
+                }
+                transition={{ duration: 0.2 }}
+                className={`w-5 h-[1.5px] block transition-colors duration-300 ${
+                  isOpen ? "bg-cream" : "bg-brand-black"
+                }`}
+              />
+              <motion.span
+                animate={
+                  isOpen
+                    ? { rotate: -45, y: -7, width: 24 }
+                    : { rotate: 0, y: 0, width: 14 }
+                }
+                transition={{ duration: 0.3 }}
+                className={`h-[1.5px] block self-end origin-center transition-colors duration-300 ${
+                  isOpen ? "bg-cream" : "bg-brand-black"
+                }`}
+                style={{ width: 14 }}
+              />
+            </button>
           </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              {isOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile menu */}
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="md:hidden bg-white border-t"
-        >
-          <div className="px-4 pt-2 pb-4 space-y-2">
-            <Link
-              href="/"
-              className="block py-2 text-gray-700 hover:text-peach-600 font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              Home
-            </Link>
-            <Link
-              href="/collections"
-              className="block py-2 text-gray-700 hover:text-peach-600 font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              Collections
-            </Link>
-            <Link
-              href="/about"
-              className="block py-2 text-gray-700 hover:text-peach-600 font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-              className="block py-2 text-gray-700 hover:text-peach-600 font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              Contact
-            </Link>
-          </div>
-        </motion.div>
-      )}
-    </nav>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4 }}
+            className="fixed inset-0 bg-brand-black/[0.97] backdrop-blur-2xl z-40 flex items-center justify-center"
+          >
+            <nav className="flex flex-col items-center gap-10">
+              {navLinks.map((link, i) => (
+                <motion.div
+                  key={link.href}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: i * 0.08, duration: 0.4 }}
+                >
+                  <Link
+                    href={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`font-serif text-4xl sm:text-5xl transition-colors duration-300 cursor-hover ${
+                      pathname === link.href
+                        ? "text-brand-red"
+                        : "text-cream/70 hover:text-brand-red"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                </motion.div>
+              ))}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="mt-8 text-brand-muted text-xs tracking-[0.3em] uppercase"
+              >
+                A Step Ahead
+              </motion.div>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

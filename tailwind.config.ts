@@ -9,21 +9,46 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        peach: {
-          50: '#fef5f1',
-          100: '#fce8df',
-          200: '#f9d0c0',
-          300: '#f5b199',
-          400: '#f08866',
-          500: '#e86642',
-          600: '#d54d2f',
-          700: '#b33d24',
-          800: '#933522',
-          900: '#7a3020',
+        cream: {
+          DEFAULT: "#FAF6F1",
+          dark: "#EDE8E0",
+          darker: "#DDD6CC",
+        },
+        brand: {
+          black: "#0F0F0F",
+          charcoal: "#1A1A1A",
+          red: "#C41E3A",
+          "red-dark": "#A0182F",
+          gold: "#C8A97E",
+          "gold-light": "#DFC9A3",
+          muted: "#9A9590",
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: [
+          "var(--font-playfair)",
+          "Playfair Display",
+          "Georgia",
+          "serif",
+        ],
+        sans: ["var(--font-dm-sans)", "DM Sans", "system-ui", "sans-serif"],
+      },
+      animation: {
+        marquee: "marquee 25s linear infinite",
+        "marquee-slow": "marquee 40s linear infinite",
+        float: "float 6s ease-in-out infinite",
+        "float-delayed": "float 6s ease-in-out 2s infinite",
+        "float-slow": "float 8s ease-in-out 1s infinite",
+      },
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
       },
     },
   },

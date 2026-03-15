@@ -7,28 +7,44 @@ interface ProductCardProps {
   image: string;
   title: string;
   category: string;
+  price?: string;
 }
 
-export default function ProductCard({ image, title, category }: ProductCardProps) {
+export default function ProductCard({
+  image,
+  title,
+  category,
+  price,
+}: ProductCardProps) {
   return (
     <motion.div
-      whileHover={{ y: -8 }}
-      transition={{ duration: 0.3 }}
-      className="group cursor-pointer"
+      whileHover={{ y: -6 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
+      className="group cursor-hover"
     >
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 shadow-md group-hover:shadow-xl transition-shadow duration-300">
+      <div className="relative aspect-[3/4] overflow-hidden bg-cream-dark img-reveal">
         <Image
           src={image}
           alt={title}
           fill
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-            <p className="text-sm font-medium text-peach-300">{category}</p>
-            <h3 className="text-xl font-bold">{title}</h3>
-          </div>
-        </div>
+        {/* Hover gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        {/* Corner red triangle accent */}
+        <div className="absolute top-0 right-0 w-0 h-0 border-t-[40px] border-t-brand-red border-l-[40px] border-l-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      </div>
+      <div className="mt-3 px-0.5">
+        <p className="text-[10px] tracking-[0.2em] uppercase text-brand-red font-sans mb-1">
+          {category}
+        </p>
+        <h3 className="font-serif text-base text-brand-black group-hover:text-brand-red transition-colors duration-300">
+          {title}
+        </h3>
+        {price && (
+          <p className="text-brand-muted text-sm font-sans mt-1">{price}</p>
+        )}
       </div>
     </motion.div>
   );

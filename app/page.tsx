@@ -1,79 +1,663 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Hero from "@/components/Hero";
+import { useRef, useState, useEffect } from "react";
+import { motion, useScroll, useTransform, useInView } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ProductCard from "@/components/ProductCard";
 
-const featuredProducts = [
-  {
-    image: "/products/IMG-20251026-WA0002.jpg",
-    title: "Classic Navy Slides",
-    category: "Signature Collection",
-  },
-  {
-    image: "/products/IMG-20251026-WA0010.jpg",
-    title: "Bow Accent Clogs",
-    category: "Designer Clogs",
-  },
-  {
-    image: "/products/IMG-20251026-WA0015.jpg",
-    title: "Puzzle Pattern Slides",
-    category: "Bold Patterns",
-  },
-  {
-    image: "/products/IMG-20251026-WA0020.jpg",
-    title: "Leopard Print Slides",
-    category: "Wild Collection",
-  },
-  {
-    image: "/products/IMG-20251103-WA0005.jpg",
-    title: "Platform Sandals",
-    category: "Platform Collection",
-  },
-  {
-    image: "/products/IMG-20251026-WA0033.jpg",
-    title: "Sunflower Design",
-    category: "Floral Collection",
-  },
+/* ─── DATA ─── */
+
+const newArrivals = [
+  { image: "/products/new-03.jpeg", title: "David Black", category: "Men's Flip Flops" },
+  { image: "/products/new-02.jpeg", title: "Galaxy Sky Blue", category: "Kids' Clogs" },
+  { image: "/products/new-18.jpeg", title: "Lexxy Vanilla", category: "Kids' Clogs" },
+  { image: "/products/new-37.jpeg", title: "Sam LT Grey", category: "Men's Slides" },
+  { image: "/products/new-01.jpeg", title: "Galaxy Mustard", category: "Kids' Clogs" },
+  { image: "/products/new-31.jpeg", title: "Devin Olive", category: "Kids' Clogs" },
+  { image: "/products/new-48.jpeg", title: "Carren Lilac", category: "Kids' Slides" },
+  { image: "/products/new-09.jpeg", title: "David Navy", category: "Men's Flip Flops" },
+  { image: "/products/new-22.jpeg", title: "Lexxy Mint", category: "Kids' Clogs" },
+  { image: "/products/new-27.jpeg", title: "Alex Red/Black", category: "Kids' Clogs" },
+  { image: "/products/new-41.jpeg", title: "Jaxon Olive", category: "Men's Slides" },
+  { image: "/products/new-14.jpeg", title: "Toby", category: "Kids' Clogs" },
 ];
 
+const bestSellers = [
+  { image: "/products/IMG-20251026-WA0010.jpg", title: "Pink Bow Clogs", category: "Designer Clogs" },
+  { image: "/products/new-03.jpeg", title: "David Black", category: "Men's Collection" },
+  { image: "/products/IMG-20251026-WA0023.jpg", title: "Platform Sandals", category: "Platform Collection" },
+  { image: "/products/new-02.jpeg", title: "Galaxy Sky Blue", category: "Kids' Collection" },
+  { image: "/products/IMG-20251026-WA0002.jpg", title: "Classic Navy", category: "Signature" },
+  { image: "/products/new-18.jpeg", title: "Lexxy Vanilla", category: "Kids' Collection" },
+];
+
+const marqueeText =
+  "A STEP AHEAD \u00B7 COMFORT THAT MOVES WITH YOU \u00B7 PREMIUM FOOTWEAR \u00B7 FOR THE ENTIRE FAMILY \u00B7 ";
+
+const stats = [
+  { value: 110, suffix: "+", label: "Products" },
+  { value: 3, suffix: "", label: "Collections" },
+  { value: 20, suffix: "+", label: "Styles" },
+  { value: 0, suffix: "\u221E", label: "Comfort" },
+];
+
+/* ─── ANIMATED COUNTER ─── */
+
+function Counter({
+  value,
+  suffix,
+  label,
+}: {
+  value: number;
+  suffix: string;
+  label: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView || value === 0) return;
+    let start = 0;
+    const duration = 2000;
+    const step = value / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= value) {
+        setCount(value);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [isInView, value]);
+
+  return (
+    <div ref={ref} className="text-center">
+      <p className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold text-white mb-2">
+        {value === 0 ? suffix : `${count}${suffix}`}
+      </p>
+      <p className="text-[10px] tracking-[0.3em] uppercase text-white/70 font-sans">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+/* ─── HOME PAGE ─── */
+
 export default function Home() {
+  // Horizontal scroll
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: hScrollProgress } = useScroll({
+    target: scrollRef,
+    offset: ["start start", "end end"],
+  });
+  const hX = useTransform(hScrollProgress, [0, 1], ["0%", "-65%"]);
+
+  // Parallax for brand story image
+  const storyRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: storyProgress } = useScroll({
+    target: storyRef,
+    offset: ["start end", "end start"],
+  });
+  const storyY = useTransform(storyProgress, [0, 1], ["-15%", "15%"]);
+
   return (
     <main className="min-h-screen">
       <Navbar />
-      <Hero />
 
-      {/* Featured Collection */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ═══════════════════════════════════════
+          HERO — Cream bg, massive text, floating images
+          ═══════════════════════════════════════ */}
+      <section className="relative h-screen overflow-hidden section-cream">
+        {/* Floating product image — top right */}
+        <motion.div
+          className="absolute top-[12%] right-[3%] lg:right-[8%] w-[150px] h-[190px] sm:w-[220px] sm:h-[280px] lg:w-[280px] lg:h-[350px] z-10 overflow-hidden shadow-2xl shadow-brand-black/10"
+          initial={{ opacity: 0, y: 60, rotate: -3 }}
+          animate={{ opacity: 1, y: 0, rotate: -3 }}
+          transition={{ duration: 1, delay: 0.8 }}
+        >
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            animate={{ y: [0, -15, 0] }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="w-full h-full relative"
           >
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Featured Collection
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Explore our handpicked selection of comfortable, stylish footwear
-              designed to move with you.
-            </p>
+            <Image
+              src="/products/new-03.jpeg"
+              alt="David Collection"
+              fill
+              className="object-cover"
+              priority
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Floating product image — bottom left */}
+        <motion.div
+          className="absolute bottom-[12%] left-[2%] lg:left-[6%] w-[130px] h-[170px] sm:w-[200px] sm:h-[260px] lg:w-[260px] lg:h-[330px] z-10 overflow-hidden shadow-2xl shadow-brand-black/10"
+          initial={{ opacity: 0, y: 60, rotate: 4 }}
+          animate={{ opacity: 1, y: 0, rotate: 4 }}
+          transition={{ duration: 1, delay: 1 }}
+        >
+          <motion.div
+            animate={{ y: [0, 12, 0] }}
+            transition={{
+              duration: 7,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 1,
+            }}
+            className="w-full h-full relative"
+          >
+            <Image
+              src="/products/IMG-20251026-WA0010.jpg"
+              alt="Designer Clogs"
+              fill
+              className="object-cover"
+              priority
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Floating product image — behind text, desaturated */}
+        <motion.div
+          className="hidden sm:block absolute top-[28%] left-[15%] lg:left-[22%] w-[140px] h-[180px] lg:w-[200px] lg:h-[260px] z-0 overflow-hidden shadow-xl shadow-brand-black/5"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 0.5, scale: 1 }}
+          transition={{ duration: 1, delay: 1.2 }}
+        >
+          <motion.div
+            animate={{ y: [0, -10, 0] }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+            className="w-full h-full relative"
+          >
+            <Image
+              src="/products/new-01.jpeg"
+              alt="Galaxy Collection"
+              fill
+              className="object-cover"
+              priority
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Centered content */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-20 px-4">
+          {/* Massive brand name */}
+          <motion.div
+            initial={{ clipPath: "inset(100% 0 0 0)" }}
+            animate={{ clipPath: "inset(0% 0 0 0)" }}
+            transition={{
+              duration: 1,
+              delay: 0.3,
+              ease: [0.25, 0.46, 0.45, 0.94],
+            }}
+          >
+            <h1 className="font-serif text-[18vw] sm:text-[15vw] lg:text-[12vw] font-bold text-brand-black leading-[0.9] tracking-[-0.02em] text-center select-none">
+              ACCENDO
+            </h1>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((product, index) => (
+          {/* Tagline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+            className="flex items-center gap-4 mt-6"
+          >
+            <div className="w-10 h-px bg-brand-red" />
+            <p className="text-[11px] tracking-[0.5em] uppercase text-brand-muted font-sans">
+              A Step Ahead
+            </p>
+            <div className="w-10 h-px bg-brand-red" />
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.4 }}
+            className="text-brand-black/50 text-sm sm:text-base max-w-md text-center mt-4 font-sans leading-relaxed"
+          >
+            Premium comfort footwear for men, women &amp; kids. Crafted for
+            those who refuse to compromise.
+          </motion.p>
+
+          {/* CTA buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.6 }}
+            className="flex gap-4 mt-8"
+          >
+            <Link href="/collections" className="btn-fill cursor-hover">
+              Explore
+            </Link>
+            <Link href="/about" className="btn-outline cursor-hover">
+              Our Story
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2.2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
+        >
+          <span className="text-[9px] tracking-[0.3em] uppercase text-brand-muted font-sans">
+            Scroll
+          </span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="w-px h-8 bg-gradient-to-b from-brand-red/60 to-transparent"
+          />
+        </motion.div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          RED MARQUEE BAND
+          ═══════════════════════════════════════ */}
+      <div className="py-5 overflow-hidden section-red">
+        <div className="animate-marquee whitespace-nowrap flex">
+          {[...Array(6)].map((_, i) => (
+            <span
+              key={i}
+              className="text-[11px] tracking-[0.4em] uppercase text-white/80 font-sans mx-0 inline-block"
+            >
+              {marqueeText}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════
+          CATEGORY SHOWCASE — Cream bg, bento grid
+          ═══════════════════════════════════════ */}
+      <section className="py-24 md:py-32 lg:py-40 section-cream">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="mb-16"
+          >
+            <p className="text-[10px] tracking-[0.5em] uppercase text-brand-red mb-4 font-sans">
+              Explore
+            </p>
+            <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-brand-black">
+              Shop by Category
+            </h2>
+          </motion.div>
+
+          {/* Asymmetric bento: large left, two stacked right */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-5">
+            {/* Women's — Large */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="lg:col-span-7"
+            >
+              <Link
+                href="/collections"
+                className="block group cursor-hover"
+              >
+                <div className="relative h-[400px] md:h-[500px] lg:h-[620px] overflow-hidden">
+                  <Image
+                    src="/products/IMG-20251026-WA0010.jpg"
+                    alt="Women's Collection"
+                    fill
+                    className="object-cover transition-transform duration-[1.2s] group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-12">
+                    <p className="text-[10px] tracking-[0.4em] uppercase text-brand-red mb-3 font-sans">
+                      Collection
+                    </p>
+                    <h3 className="font-serif text-4xl lg:text-5xl text-white mb-3">
+                      For Her
+                    </h3>
+                    <p className="text-white/60 text-sm max-w-sm font-sans">
+                      Clogs, slides &amp; platform sandals crafted for elegance
+                      and comfort
+                    </p>
+                    <div className="mt-6 flex items-center gap-2 text-white text-xs tracking-[0.2em] uppercase font-sans group-hover:gap-4 transition-all duration-300">
+                      Explore
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M17 8l4 4m0 0l-4 4m4-4H3"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Right column: Men + Kids stacked */}
+            <div className="lg:col-span-5 flex flex-col gap-4 lg:gap-5">
+              {/* Men's */}
               <motion.div
-                key={index}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.15 }}
+                className="flex-1"
+              >
+                <Link
+                  href="/collections"
+                  className="block group cursor-hover h-full"
+                >
+                  <div className="relative h-[250px] lg:h-full overflow-hidden">
+                    <Image
+                      src="/products/new-37.jpeg"
+                      alt="Men's Collection"
+                      fill
+                      className="object-cover transition-transform duration-[1.2s] group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                      <p className="text-[10px] tracking-[0.4em] uppercase text-brand-red mb-2 font-sans">
+                        Collection
+                      </p>
+                      <h3 className="font-serif text-3xl lg:text-4xl text-white mb-2">
+                        For Him
+                      </h3>
+                      <div className="flex items-center gap-2 text-white text-xs tracking-[0.2em] uppercase font-sans group-hover:gap-4 transition-all duration-300">
+                        Explore
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+
+              {/* Kids' */}
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, delay: 0.3 }}
+                className="flex-1"
+              >
+                <Link
+                  href="/collections"
+                  className="block group cursor-hover h-full"
+                >
+                  <div className="relative h-[250px] lg:h-full overflow-hidden">
+                    <Image
+                      src="/products/new-01.jpeg"
+                      alt="Kids' Collection"
+                      fill
+                      className="object-cover transition-transform duration-[1.2s] group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-8">
+                      <p className="text-[10px] tracking-[0.4em] uppercase text-brand-red mb-2 font-sans">
+                        Collection
+                      </p>
+                      <h3 className="font-serif text-3xl lg:text-4xl text-white mb-2">
+                        For Kids
+                      </h3>
+                      <div className="flex items-center gap-2 text-white text-xs tracking-[0.2em] uppercase font-sans group-hover:gap-4 transition-all duration-300">
+                        Explore
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          HORIZONTAL SCROLL — Dark bg, pinned products
+          ═══════════════════════════════════════ */}
+      <section
+        ref={scrollRef}
+        className="relative section-dark"
+        style={{ height: "300vh" }}
+      >
+        <div className="sticky top-0 h-screen overflow-hidden flex flex-col justify-center">
+          {/* Section title */}
+          <div className="max-w-[1400px] mx-auto px-6 lg:px-10 w-full mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <p className="text-[10px] tracking-[0.5em] uppercase text-brand-red mb-4 font-sans">
+                Just Landed
+              </p>
+              <div className="flex items-end justify-between">
+                <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-cream">
+                  New Arrivals
+                </h2>
+                <Link
+                  href="/collections"
+                  className="hidden sm:flex items-center gap-2 text-brand-red text-xs tracking-[0.2em] uppercase font-sans hover:gap-4 transition-all duration-300 cursor-hover"
+                >
+                  View All
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Horizontal-scrolling product strip */}
+          <motion.div style={{ x: hX }} className="flex gap-6 pl-6 lg:pl-10">
+            {newArrivals.map((product, i) => (
+              <div
+                key={i}
+                className="w-[260px] sm:w-[300px] lg:w-[320px] flex-shrink-0 group cursor-hover"
+              >
+                <div className="relative aspect-[3/4] overflow-hidden bg-brand-charcoal">
+                  <Image
+                    src={product.image}
+                    alt={product.title}
+                    fill
+                    sizes="320px"
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
+                <div className="mt-4">
+                  <p className="text-[9px] tracking-[0.2em] uppercase text-brand-red font-sans mb-1">
+                    {product.category}
+                  </p>
+                  <h3 className="font-serif text-lg text-cream group-hover:text-brand-red transition-colors duration-300">
+                    {product.title}
+                  </h3>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          BRAND STORY — Cream bg, parallax image
+          ═══════════════════════════════════════ */}
+      <section
+        ref={storyRef}
+        className="py-24 md:py-32 lg:py-40 section-cream overflow-hidden"
+      >
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            {/* Text */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+            >
+              <p className="text-[10px] tracking-[0.5em] uppercase text-brand-red mb-6 font-sans">
+                Our Philosophy
+              </p>
+              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-brand-black leading-[1.05] mb-8">
+                Where Comfort
+                <br />
+                <span className="italic text-brand-red">Meets Style</span>
+              </h2>
+              <p className="text-brand-black/50 text-base sm:text-lg leading-relaxed mb-10 max-w-lg font-sans">
+                Every pair is crafted with care, combining premium materials
+                with designs that elevate your everyday. From the playground to
+                the promenade, ACCENDO moves with you.
+              </p>
+              <Link href="/about" className="btn-outline cursor-hover">
+                Discover Our Story
+              </Link>
+            </motion.div>
+
+            {/* Parallax image */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative h-[500px] lg:h-[600px] overflow-hidden"
+            >
+              <motion.div
+                style={{ y: storyY }}
+                className="absolute inset-0 -top-[15%] -bottom-[15%]"
+              >
+                <Image
+                  src="/products/IMG-20251026-WA0039.jpg"
+                  alt="ACCENDO Lifestyle"
+                  fill
+                  className="object-cover"
+                />
+              </motion.div>
+              {/* Red accent block */}
+              <div className="absolute bottom-0 left-0 w-20 h-20 bg-brand-red" />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          BESTSELLERS — Dark bg, asymmetric grid
+          ═══════════════════════════════════════ */}
+      <section className="py-24 md:py-32 lg:py-40 section-dark">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.7 }}
+            className="text-center mb-16"
+          >
+            <p className="text-[10px] tracking-[0.5em] uppercase text-brand-red mb-4 font-sans">
+              Most Loved
+            </p>
+            <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-cream">
+              Bestsellers
+            </h2>
+          </motion.div>
+
+          {/* Asymmetric grid: first item 2×2, rest fill */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {bestSellers.map((product, i) => (
+              <motion.div
+                key={i}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className={`group cursor-hover ${
+                  i === 0
+                    ? "sm:col-span-2 lg:col-span-2 lg:row-span-2"
+                    : ""
+                }`}
               >
-                <ProductCard {...product} />
+                <div
+                  className={`relative overflow-hidden bg-brand-charcoal ${
+                    i === 0
+                      ? "aspect-[4/3] lg:aspect-auto lg:h-full"
+                      : "aspect-[3/4]"
+                  }`}
+                >
+                  <Image
+                    src={product.image}
+                    alt={product.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
+                    <p className="text-[9px] tracking-[0.2em] uppercase text-brand-red font-sans mb-1">
+                      {product.category}
+                    </p>
+                    <h3 className="font-serif text-xl text-white">
+                      {product.title}
+                    </h3>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -82,131 +666,78 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="text-center mt-12"
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center mt-14"
           >
-            <a
+            <Link
               href="/collections"
-              className="inline-block px-8 py-4 bg-gray-900 text-white rounded-full font-semibold hover:bg-gray-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="btn-outline-light cursor-hover"
             >
               View All Collections
-            </a>
+            </Link>
           </motion.div>
         </div>
       </section>
 
-      {/* Brand Story */}
-      <section className="py-20 bg-gradient-to-br from-peach-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                A Step Ahead in Comfort
-              </h2>
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                At ACCENDO, we believe that comfort and style should never be
-                compromised. Our footwear is designed with the modern individual
-                in mind—someone who values both aesthetics and functionality.
-              </p>
-              <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                Each piece in our collection is crafted to provide maximum
-                comfort while keeping you fashion-forward. From classic slides to
-                trendy platform sandals, we have something for every step of your
-                journey.
-              </p>
-              <a
-                href="/about"
-                className="inline-flex items-center text-peach-600 font-semibold hover:text-peach-700 transition-colors"
+      {/* ═══════════════════════════════════════
+          STATS BAND — Red bg, animated counters
+          ═══════════════════════════════════════ */}
+      <section className="py-20 md:py-24 section-red">
+        <div className="max-w-[1200px] mx-auto px-6 lg:px-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+            {stats.map((stat, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
               >
-                Learn More About Us
-                <svg
-                  className="w-5 h-5 ml-2"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M9 5l7 7-7 7"></path>
-                </svg>
-              </a>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="grid grid-cols-2 gap-4"
-            >
-              <div className="space-y-4">
-                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg">
-                  <img
-                    src="/products/IMG-20251026-WA0005.jpg"
-                    alt="Product"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg">
-                  <img
-                    src="/products/IMG-20251026-WA0018.jpg"
-                    alt="Product"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-              <div className="space-y-4 pt-8">
-                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg">
-                  <img
-                    src="/products/IMG-20251026-WA0012.jpg"
-                    alt="Product"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="aspect-square rounded-2xl overflow-hidden shadow-lg">
-                  <img
-                    src="/products/IMG-20251103-WA0007.jpg"
-                    alt="Product"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </motion.div>
+                <Counter
+                  value={stat.value}
+                  suffix={stat.suffix}
+                  label={stat.label}
+                />
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Newsletter */}
-      <section className="py-20 bg-gray-900 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* ═══════════════════════════════════════
+          NEWSLETTER — Cream bg
+          ═══════════════════════════════════════ */}
+      <section className="py-24 md:py-32 section-cream">
+        <div className="max-w-3xl mx-auto px-6 lg:px-10 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.7 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <p className="text-[10px] tracking-[0.5em] uppercase text-brand-red mb-4 font-sans">
               Stay Connected
-            </h2>
-            <p className="text-gray-300 mb-8">
-              Be the first to know about new collections, exclusive offers, and
-              more.
             </p>
-            <form className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-brand-black mb-4">
+              Join the Journey
+            </h2>
+            <p className="text-brand-black/40 text-sm mb-10 max-w-md mx-auto font-sans">
+              Be the first to discover new collections, exclusive offers, and
+              the stories behind every step.
+            </p>
+
+            <form
+              className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto"
+              onSubmit={(e) => e.preventDefault()}
+            >
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 px-6 py-3 rounded-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-peach-500"
+                className="flex-1 px-6 py-4 bg-transparent border border-brand-black/15 text-brand-black text-sm font-sans placeholder:text-brand-black/30 focus:outline-none focus:border-brand-red transition-colors cursor-hover"
               />
               <button
                 type="submit"
-                className="px-8 py-3 bg-peach-600 text-white rounded-full font-semibold hover:bg-peach-700 transition-colors"
+                className="btn-fill cursor-hover whitespace-nowrap"
               >
                 Subscribe
               </button>
@@ -215,6 +746,7 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══════════ FOOTER ═══════════ */}
       <Footer />
     </main>
   );

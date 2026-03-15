@@ -1,13 +1,24 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Playfair_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
+import CustomCursor from "@/components/CustomCursor";
 
-const inter = Inter({ subsets: ["latin"] });
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "ACCENDO - A Step Ahead",
-  description: "Comfort That Moves With You. Discover our collection of stylish, comfortable footwear designed for your active lifestyle.",
-  keywords: ["footwear", "slides", "sandals", "clogs", "comfort", "fashion", "ACCENDO"],
+  title: "ACCENDO | A Step Ahead",
+  description:
+    "Premium comfort footwear for the entire family. Slides, clogs, and sandals where style meets comfort.",
 };
 
 export default function RootLayout({
@@ -16,8 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
+      <body className="font-sans antialiased">
+        <CustomCursor />
+        {children}
+      </body>
     </html>
   );
 }
