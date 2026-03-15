@@ -1,555 +1,265 @@
 # ACCENDO World - Complete Project Documentation
 
-## 🎯 Project Overview
+## Project Overview
 
-**ACCENDO World** (accendoworld.com) is a modern, responsive marketing website for ACCENDO footwear brand. The site showcases a collection of comfortable, stylish slides, clogs, and platform sandals targeting young women and fashion-conscious adults.
+**ACCENDO World** (accendoworld.com) is a premium, creatively-designed marketing website for ACCENDO footwear brand. The site features alternating cream/red/dark section rhythms, a custom cursor, horizontal scroll sections, parallax imagery, and massive editorial typography.
 
 **Brand Identity:**
 - **Name:** ACCENDO
 - **Tagline:** "A Step Ahead"
 - **Mission:** "Comfort That Moves With You"
-- **Target Audience:** Young women, teens, fashion-conscious adults seeking comfort and style
+- **Target Audience:** Men, women, kids — families seeking comfort and style
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-### Core Technologies
 - **Framework:** Next.js 16.0.10 (React 19.2.3)
 - **Language:** TypeScript 5.9.3
 - **Styling:** Tailwind CSS 3.x
 - **Animations:** Framer Motion 12.23.26
-- **Deployment:** Vercel (Production)
+- **Deployment:** Vercel (auto-deploy on push to `main`)
 - **Domain:** Cloudflare DNS → Vercel
-- **Version Control:** Git + GitHub
-
-### Dependencies
-```json
-{
-  "next": "^16.0.10",
-  "react": "^19.2.3",
-  "react-dom": "^19.2.3",
-  "framer-motion": "^12.23.26",
-  "tailwindcss": "^3.x",
-  "typescript": "^5.9.3"
-}
-```
+- **Repository:** https://github.com/369-shar-block/accendorworld
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 accendorworld/
 ├── app/
-│   ├── layout.tsx              # Root layout with metadata
-│   ├── page.tsx                # Homepage
-│   ├── globals.css             # Global styles + Tailwind imports
-│   ├── about/
-│   │   └── page.tsx            # About page
-│   ├── collections/
-│   │   └── page.tsx            # Collections page (all products)
-│   └── contact/
-│       └── page.tsx            # Contact page with form
+│   ├── layout.tsx              # Root layout (fonts, CustomCursor, metadata)
+│   ├── page.tsx                # Homepage (9 sections, horizontal scroll, parallax)
+│   ├── globals.css             # Global styles, button classes, section utilities
+│   ├── about/page.tsx          # About page (7 alternating sections)
+│   ├── collections/page.tsx    # Collections (masonry grid, sticky filters, 101 products)
+│   └── contact/page.tsx        # Contact (editorial form, info cards)
 ├── components/
-│   ├── Navbar.tsx              # Fixed navigation with mobile menu
-│   ├── Footer.tsx              # Footer with links and branding
-│   ├── Hero.tsx                # Animated hero section
-│   └── ProductCard.tsx         # Reusable product card with hover effects
+│   ├── Navbar.tsx              # Fixed nav, cream glass on scroll, animated mobile menu
+│   ├── Footer.tsx              # Black bg footer with red accents
+│   ├── CustomCursor.tsx        # Mix-blend-difference cursor (desktop only)
+│   ├── ProductCard.tsx         # Product card with hover effects (cream bg)
+│   └── Hero.tsx                # [DEPRECATED - no longer imported]
 ├── public/
-│   └── products/               # 59 product images (IMG-*.jpg)
+│   └── products/               # 112 product images
+│       ├── IMG-*.jpg           # 59 original images
+│       └── new-01 to 53.jpeg   # 53 new product images
+├── pics/                       # Original source images (not deployed)
 ├── inventory/                  # Original product images backup
-├── next.config.js              # Next.js configuration
-├── tailwind.config.ts          # Tailwind with custom peach colors
-├── tsconfig.json               # TypeScript configuration
-├── package.json                # Dependencies and scripts
-├── DEPLOYMENT.md               # Deployment instructions
+├── tailwind.config.ts          # Custom colors, fonts, animations
+├── next.config.js              # images.unoptimized: true
 └── CLAUDE.md                   # This file
-
 ```
 
 ---
 
-## 🎨 Design System
+## Design System
 
-### Color Palette
+### Color Palette (tailwind.config.ts)
 ```typescript
-// Tailwind Custom Colors (tailwind.config.ts)
-peach: {
-  50: '#fef5f1',
-  100: '#fce8df',
-  200: '#f9d0c0',
-  300: '#f5b199',
-  400: '#f08866',
-  500: '#e86642',  // Primary peach
-  600: '#d54d2f',
-  700: '#b33d24',
-  800: '#933522',
-  900: '#7a3020',
+cream:    { DEFAULT: "#FAF6F1", dark: "#EDE8E0", darker: "#DDD6CC" }
+brand: {
+  black:      "#0F0F0F",
+  charcoal:   "#1A1A1A",
+  red:        "#C41E3A",    // Primary accent
+  "red-dark": "#A0182F",
+  gold:       "#C8A97E",
+  "gold-light":"#DFC9A3",
+  muted:      "#9A9590",
 }
 ```
 
-**Primary Colors:**
-- Peach/Orange tones: #f08866, #e86642, #d54d2f
-- Gray scale: #111827 (gray-900) to white
-- Background gradients: from-peach-50 to-white
+### Section Rhythm
+Pages alternate between three moods for visual drama:
+- **`section-cream`** — `bg: #FAF6F1`, `color: #0F0F0F`
+- **`section-dark`** — `bg: #0F0F0F`, `color: #FAF6F1`
+- **`section-red`** — `bg: #C41E3A`, `color: white`
 
 ### Typography
-- **Font:** Inter (Google Fonts)
-- **Headings:** Bold, large (4xl-9xl)
-- **Body:** Regular, readable (lg-xl)
+- **Serif (headings):** Playfair Display via `font-serif` / `var(--font-playfair)`
+- **Sans (body):** DM Sans via `font-sans` / `var(--font-dm-sans)`
+- Massive viewport-filling titles: `text-[18vw]` down to `text-[12vw]`
 
-### Border Radius
-- Cards: `rounded-2xl` (16px)
-- Buttons: `rounded-full`
-- Images: `rounded-2xl` or `rounded-3xl`
+### Button Classes (globals.css)
+- **`.btn-fill`** — Red bg (#C41E3A), white text, hover lift + shadow
+- **`.btn-outline`** — Dark border, transparent bg, hover fills dark
+- **`.btn-outline-light`** — White border for dark sections, hover fills white
 
----
+### Custom Cursor
+- `components/CustomCursor.tsx` — white dot, `mix-blend-difference`, `z-[99999]`
+- Expands from 12px to 48px on hoverable elements
+- Only active on desktop (`pointer: fine`)
+- Add `cursor-hover` class to interactive elements for cursor expansion
+- Body uses `cursor: none` (overridden to `cursor: auto` on touch devices)
 
-## 📄 Pages & Features
-
-### 1. Homepage (`/`)
-**Sections:**
-- **Hero Section**
-  - Animated entrance (fade + slide up)
-  - Large ACCENDO logo (7xl-9xl font)
-  - Tagline with decorative lines
-  - Two CTA buttons (Explore Collections, Get in Touch)
-  - Bouncing scroll indicator
-
-- **Featured Collection**
-  - 6 handpicked products in responsive grid
-  - Staggered animation on scroll
-  - Product cards with hover effects
-  - "View All Collections" CTA
-
-- **Brand Story**
-  - Two-column layout (text + image grid)
-  - 4 product images in 2x2 offset grid
-  - Brand mission and values
-  - Link to About page
-
-- **Newsletter Signup**
-  - Dark background (gray-900)
-  - Email input + Subscribe button
-  - Centered layout
-
-### 2. Collections Page (`/collections`)
-**Features:**
-- Category filter buttons (sticky on scroll)
-- 8 categories: All, Classic Slides, Designer Clogs, Platform Collection, Bold Patterns, Wild Collection, Floral Collection, Ethnic Designs
-- 59 total products displayed
-- Responsive grid: 1 col (mobile) → 2 (tablet) → 3 (desktop) → 4 (xl)
-- Each product has image, title, category
-- Animated entrance on scroll
-
-**Product Categories Breakdown:**
-- **Classic Slides:** Navy, black, white logo slides (13 products)
-- **Designer Clogs:** Bow-accent clogs in various colors (17 products)
-- **Platform Collection:** Chunky platform sandals (13 products)
-- **Bold Patterns:** Puzzle, tech-inspired designs (5 products)
-- **Wild Collection:** Leopard print slides (3 products)
-- **Floral Collection:** Sunflower design slides (2 products)
-- **Ethnic Designs:** Traditional pattern slides (3 products)
-
-### 3. About Page (`/about`)
-**Sections:**
-- Hero with page title
-- Brand story (two-column with image)
-- Mission statement
-- Core values grid (3 cards):
-  - Premium Comfort
-  - Global Reach
-  - Trendsetting Design
-- CTA to collections
-
-### 4. Contact Page (`/contact`)
-**Features:**
-- Contact form (name, email, subject, message)
-- Contact information cards:
-  - Email: info@accendoworld.com
-  - Global shipping available
-  - 24-48 hour response time
-- Form validation (required fields)
-- Product image showcase
+### Utility Classes
+- `.scrollbar-hide` — hides scrollbars
+- `.img-reveal` — shine sweep effect on hover
+- `.custom-cursor` / `.cursor-dot` — cursor CSS fallbacks
 
 ---
 
-## 🖼 Product Inventory
+## Pages & Sections
 
-**Total Products:** 59 professional product photos
+### Homepage (`/`) — 9 sections
+1. **Hero (Cream)** — Massive "ACCENDO" text with clipPath reveal, 3 floating product images, tagline, CTA buttons, scroll indicator
+2. **Red Marquee** — Scrolling white text on brand red band
+3. **Category Showcase (Cream)** — Asymmetric bento grid: large Women's left, Men + Kids stacked right
+4. **Horizontal Scroll (Dark)** — Pinned 300vh section, products scroll horizontally via `useScroll` + `useTransform`
+5. **Brand Story (Cream)** — Split layout: serif quote left, parallax image right with red accent block
+6. **Bestsellers (Dark)** — Asymmetric grid (first item 2x2), hover reveals category/title
+7. **Stats Band (Red)** — Animated counters: 110+ Products, 3 Collections, 20+ Styles, ∞ Comfort
+8. **Newsletter (Cream)** — Email signup form
+9. **Footer (Black)**
 
-**Image Format:** JPG files
-**Naming Convention:** IMG-YYYYMMDD-WA####.jpg
-**Storage Locations:**
-- `public/products/` - Used by website
-- `inventory/` - Original backup
+### Collections (`/collections`)
+- Hero with text reveal animation
+- Sticky filter pills: All, Men's, Women's, Kids'
+- CSS masonry layout (`columns-2 lg:columns-3 xl:columns-4`)
+- AnimatePresence for filter transitions
+- 101 total products displayed
+- Red CTA band at bottom
 
-**Image Dates:**
-- October 26, 2025: 42 images (IMG-20251026-WA0002 to WA0043)
-- November 3, 2025: 8 images (IMG-20251103-WA0005 to WA0012)
-- November 7, 2025: 9 images (IMG-20251107-WA0001 to WA0009)
+### About (`/about`) — 7 sections
+1. Hero (Cream) — clipPath text reveal
+2. Brand Story (Cream) — two-column with parallax image
+3. Full-Width Image Band — parallax effect, dark overlay
+4. Mission (Dark) — centered italic serif quote
+5. Values Grid (Cream) — 3 cards with red accent lines
+6. Product Showcase (Cream) — 4 product images in a row
+7. CTA (Red) — white text + outline button
 
-**Photography Style:**
-- High-quality studio shots
-- Clean backgrounds
-- Lifestyle photography with models
-- Multiple color/pattern backdrops
-- Flat lay and environmental shots
-
----
-
-## ⚡ Key Components
-
-### Navbar.tsx
-- Fixed position (z-50)
-- Transparent background with backdrop blur
-- Desktop: horizontal menu
-- Mobile: hamburger menu with slide-down
-- Links: Home, Collections, About, Contact
-- Smooth transitions
-
-### Hero.tsx
-- Full-screen height section
-- Background: gradient + subtle pattern overlay
-- Animated text reveals (staggered delays)
-- Two CTA buttons with hover scale
-- Parallax scroll indicator
-
-### ProductCard.tsx
-- Aspect-square container
-- Image with Next.js Image component (optimized)
-- Hover effects:
-  - Lifts up (-8px translate)
-  - Image scales (1.1x)
-  - Gradient overlay fades in
-  - Text slides up from bottom
-- Category badge + title on hover
-
-### Footer.tsx
-- Dark background (gray-900)
-- Four-column grid (responsive to single column mobile)
-- Brand info, Quick Links, Contact info
-- Copyright notice
-- Link hover effects
+### Contact (`/contact`)
+- Hero with clipPath text reveal
+- Two-column: editorial form (left) + info cards (right)
+- Form fields: name, email, subject, message (border-bottom style)
+- 3 info cards: email, shipping, response time
+- Product image strip
+- Dark location section: "Based in India, Serving the World"
 
 ---
 
-## 🚀 Development Commands
+## Product Inventory
 
-```bash
-# Install dependencies
-npm install
+**Total Images:** 112 (59 original + 53 new)
 
-# Run development server (http://localhost:3000)
-npm run dev
+### Image Naming
+- **Original:** `IMG-YYYYMMDD-WA####.jpg` (59 files)
+- **New:** `new-01.jpeg` through `new-53.jpeg`
 
-# Build for production
-npm run build
+### Product Categories & Counts
+| Category | Products | Image Prefix |
+|----------|----------|-------------|
+| Men's Flip Flops (David) | 4 | new-03 to 05, 09 |
+| Men's Slides (Sam) | 4 | new-37 to 40 |
+| Men's Slides (Jaxon) | 5 | new-41 to 45 |
+| Women's Clogs (Bow) | 12 | IMG-*WA0010–0021 |
+| Women's Platforms | 6 | IMG-*WA0023–0028 |
+| Women's Slides | 14 | IMG-*WA0002–0006, 0029–0037, WA0107* |
+| Women's Clogs (Platform) | 4 | IMG-*WA0103-0108* |
+| Kids' Clogs (Galaxy) | 5 | new-01, 02, 06, 07, 08 |
+| Kids' Clogs (Toby) | 4 | new-14 to 17 |
+| Kids' Clogs (Lexxy) | 5 | new-18 to 22 |
+| Kids' Clogs (Alex) | 6 | new-23 to 28 |
+| Kids' Clogs (Devin) | 8 | new-29 to 36 |
+| Kids' Slides (Carren) | 4 | new-48 to 51 |
+| Kids' Clogs (Carrie/Lucy) | 2 | new-52, 53 |
+| Kids' Slides (Jaxon) | 2 | new-46, 47 |
+| Kids' Flip Flops (David) | 4 | new-10 to 13 |
 
-# Start production server
-npm start
+---
 
-# Run linter
-npm run lint
+## Animation Patterns
+
+### Text Reveal (clipPath)
+```typescript
+initial={{ clipPath: "inset(100% 0 0 0)" }}
+animate={{ clipPath: "inset(0% 0 0 0)" }}
+transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}
 ```
 
----
+### Horizontal Scroll (pinned section)
+```typescript
+const scrollRef = useRef(null);
+const { scrollYProgress } = useScroll({ target: scrollRef, offset: ["start start", "end end"] });
+const hX = useTransform(scrollYProgress, [0, 1], ["0%", "-65%"]);
+// Section height: 300vh, sticky inner: h-screen
+```
 
-## 🌐 Deployment
+### Parallax Image
+```typescript
+const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+const y = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"]);
+```
 
-### Current Setup
-- **Hosting:** Vercel
-- **Domain:** accendoworld.com (managed by Cloudflare)
-- **Git Repository:** https://github.com/369-shar-block/accendorworld
-- **Production URL:** https://accendoworld.vercel.app (also https://accendoworld.com)
+### Animated Counters
+```typescript
+// useInView triggers count-up from 0 to target over 2 seconds
+// Uses setInterval at 16ms (60fps) with Math.floor
+```
 
-### Deployment Process
-1. **Automatic:** Push to `main` branch triggers Vercel deployment
-2. **Manual:** Run `vercel` or `vercel --prod` from CLI
-
-### DNS Configuration (Cloudflare)
-- **Type:** CNAME
-- **Name:** @ (root domain)
-- **Target:** cname.vercel-dns.com
-- **Proxy:** DNS only (orange cloud OFF)
-
-### Build Settings (Vercel)
-- **Framework:** Next.js
-- **Build Command:** `npm run build`
-- **Output Directory:** (auto-detected)
-- **Install Command:** `npm install`
-- **Node Version:** 18.x or 20.x
-
----
-
-## 🎭 Animation Details
-
-### Framer Motion Patterns Used
-
-**Page Load Animations:**
+### Scroll-triggered Fade Up
 ```typescript
 initial={{ opacity: 0, y: 30 }}
-animate={{ opacity: 1, y: 0 }}
-transition={{ duration: 0.8 }}
-```
-
-**Scroll-triggered Animations:**
-```typescript
-initial={{ opacity: 0, y: 20 }}
 whileInView={{ opacity: 1, y: 0 }}
 viewport={{ once: true }}
+transition={{ duration: 0.7 }}
 ```
 
-**Hover Animations:**
-```typescript
-whileHover={{ y: -8, scale: 1.05 }}
-whileTap={{ scale: 0.95 }}
-```
-
-**Staggered Children:**
-- Products animate with increasing delays (index * 0.1s)
-- Creates cascading entrance effect
-
 ---
 
-## 📱 Responsive Breakpoints
-
-Tailwind breakpoints used:
-- **sm:** 640px (tablet)
-- **md:** 768px (small desktop)
-- **lg:** 1024px (desktop)
-- **xl:** 1280px (large desktop)
-
-**Grid Layouts:**
-- Mobile: 1 column
-- Tablet (sm): 2 columns
-- Desktop (lg): 3 columns
-- Large (xl): 4 columns (collections page)
-
----
-
-## 🔧 Configuration Files
-
-### next.config.js
-```javascript
-const nextConfig = {
-  images: {
-    unoptimized: true,  // For Vercel deployment
-  },
-};
-```
-
-### tailwind.config.ts
-- Custom peach color palette
-- Custom font (Inter)
-- Extended theme with gradient utilities
-
-### tsconfig.json
-- Strict mode enabled
-- Path aliases: `@/*` maps to root
-- React JSX set to `react-jsx`
-
----
-
-## 📊 SEO & Metadata
-
-### Homepage Meta Tags (app/layout.tsx)
-```typescript
-{
-  title: "ACCENDO - A Step Ahead",
-  description: "Comfort That Moves With You. Discover our collection of stylish, comfortable footwear designed for your active lifestyle.",
-  keywords: ["footwear", "slides", "sandals", "clogs", "comfort", "fashion", "ACCENDO"]
-}
-```
-
-### Sitemap Pages
-- `/` - Homepage
-- `/collections` - All products
-- `/about` - Brand story
-- `/contact` - Contact form
-
----
-
-## 🎯 Future Enhancements (Potential)
-
-### Phase 1: E-commerce
-- [ ] Add shopping cart functionality
-- [ ] Product detail pages
-- [ ] Checkout flow
-- [ ] Payment integration (Stripe/PayPal)
-- [ ] Order management
-
-### Phase 2: Backend
-- [ ] Database integration (product data)
-- [ ] User authentication
-- [ ] Customer accounts
-- [ ] Order history
-- [ ] Admin dashboard
-
-### Phase 3: Marketing
-- [ ] Blog section
-- [ ] Product reviews/testimonials
-- [ ] Email newsletter integration (Mailchimp/ConvertKit)
-- [ ] Social media integration
-- [ ] Analytics (Google Analytics 4)
-
-### Phase 4: Advanced Features
-- [ ] Multi-language support (i18n)
-- [ ] Currency converter
-- [ ] Size guide/fit finder
-- [ ] AR try-on feature
-- [ ] Wishlist functionality
-
----
-
-## 🐛 Known Issues / Notes
-
-1. **Images:** Currently using `unoptimized: true` for Next.js Image component. For better performance, consider using Vercel's image optimization.
-
-2. **Form Handling:** Contact form currently shows alert on submit. Should integrate with email service (SendGrid, Resend, etc.)
-
-3. **Newsletter:** Newsletter form not connected to any service. Integrate with Mailchimp, ConvertKit, or similar.
-
-4. **Product Data:** Products are hardcoded in components. Consider moving to JSON file or database for easier management.
-
-5. **Image Names:** Product images have WhatsApp export names. Consider renaming for better SEO and organization.
-
----
-
-## 📞 Support & Maintenance
-
-### Regular Maintenance Tasks
-- [ ] Update dependencies monthly (`npm update`)
-- [ ] Monitor Vercel deployment status
-- [ ] Check analytics for user behavior
-- [ ] Update product images as needed
-- [ ] Review and respond to contact form submissions
-
-### Performance Monitoring
-- Check Vercel Analytics dashboard
-- Monitor Core Web Vitals
-- Test mobile responsiveness regularly
-- Verify all images load correctly
-
-### Content Updates
-- Product images: Upload to `public/products/`
-- Update product list in `app/collections/page.tsx`
-- Modify branding/copy in respective pages
-
----
-
-## 🔑 Key Files to Edit
+## Key Files to Edit
 
 **Adding New Products:**
 1. Add image to `public/products/`
-2. Update `allProducts` array in `app/collections/page.tsx`
-3. Optionally add to `featuredProducts` in `app/page.tsx`
+2. Add to `allProducts` array in `app/collections/page.tsx`
+3. Optionally add to `newArrivals` or `bestSellers` in `app/page.tsx`
 
 **Changing Brand Colors:**
-1. Edit `tailwind.config.ts` color palette
-2. Update gradient classes throughout components
+1. Edit `tailwind.config.ts` color tokens
+2. Update `app/globals.css` section/button classes
 
 **Updating Contact Info:**
-1. Edit `components/Footer.tsx`
-2. Edit `app/contact/page.tsx`
-
-**Changing Navigation:**
-1. Edit `components/Navbar.tsx`
-2. Add new page in `app/[page-name]/page.tsx`
+1. `components/Footer.tsx`
+2. `app/contact/page.tsx`
 
 ---
 
-## 📈 Performance Metrics
+## Deployment
 
-**Target Scores:**
-- Lighthouse Performance: 90+
-- Lighthouse Accessibility: 95+
-- Lighthouse Best Practices: 100
-- Lighthouse SEO: 100
+- **Hosting:** Vercel
+- **Domain:** accendoworld.com (Cloudflare DNS → `cname.vercel-dns.com`)
+- **Auto-deploy:** Push to `main` branch
+- **Production URLs:** https://accendoworld.com, https://accendoworld.vercel.app
 
-**Optimization Techniques Used:**
-- Next.js static generation
-- Image lazy loading
-- Code splitting (automatic with Next.js)
-- Tailwind CSS purging (production builds)
-- Framer Motion performance mode
+### DNS (Cloudflare)
+- Type: CNAME, Name: @, Target: cname.vercel-dns.com, Proxy: OFF
 
 ---
 
-## 🎓 Learning Resources
+## Development Commands
 
-**Technologies Used:**
-- [Next.js Documentation](https://nextjs.org/docs)
-- [React Documentation](https://react.dev)
-- [Tailwind CSS](https://tailwindcss.com/docs)
-- [Framer Motion](https://www.framer.com/motion/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-
-**Deployment:**
-- [Vercel Documentation](https://vercel.com/docs)
-- [Cloudflare DNS](https://developers.cloudflare.com/dns/)
-
----
-
-## 👥 Credits
-
-**Built with Claude Code**
-- AI-assisted development
-- Full-stack implementation
-- Responsive design
-- Deployment setup
-
-**Brand Assets:**
-- Product photography provided by client
-- ACCENDO branding and logo concept
-
----
-
-## 📝 License & Copyright
-
-© 2025 ACCENDO. All rights reserved.
-
-**Website Code:** Proprietary
-**Product Images:** © ACCENDO
-
----
-
-## 🚀 Quick Start Guide
-
-### For Developers
 ```bash
-# Clone repository
-git clone https://github.com/369-shar-block/accendorworld.git
-
-# Navigate to directory
-cd accendorworld
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Open browser to http://localhost:3000
+npm install          # Install dependencies
+npm run dev          # Dev server (http://localhost:3000)
+npm run build        # Production build
+npm start            # Production server
+npm run lint         # Linter
 ```
 
-### For Content Editors
-1. **Update Products:** Edit `app/collections/page.tsx`
-2. **Update Text:** Edit respective page files in `app/`
-3. **Update Images:** Replace files in `public/products/`
-4. **Deploy:** Push to GitHub, Vercel auto-deploys
+---
+
+## Known Issues / Notes
+
+1. **Images:** Using `unoptimized: true` — consider enabling Vercel image optimization
+2. **Contact Form:** Resets on submit but doesn't send data — wire up to email service (Resend, SendGrid)
+3. **Newsletter:** Not connected to any service — integrate with Mailchimp/ConvertKit
+4. **Product Data:** Hardcoded in page files — consider moving to JSON/database
+5. **Hero.tsx:** Deprecated component, no longer imported — can be deleted
 
 ---
 
-## 📞 Contact & Support
-
-**Website:** https://accendoworld.com
-**Email:** info@accendoworld.com
-**GitHub:** https://github.com/369-shar-block/accendorworld
-
----
-
-**Last Updated:** December 2025
-**Version:** 1.0.0
-**Status:** Production Ready ✅
+**Last Updated:** March 2026
+**Version:** 2.0.0
+**Status:** Production Ready
