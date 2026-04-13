@@ -5,7 +5,7 @@ import { fetchVisibleProducts } from "@/lib/supabase/queries";
 import { productImageUrl } from "@/lib/supabase/image";
 
 // Revalidate every 60s so editor updates appear without a redeploy
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default async function CollectionsPage() {
   const products = await fetchVisibleProducts();

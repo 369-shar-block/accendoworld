@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AboutClient from "./AboutClient";
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 export default function AboutPage() {
   return (

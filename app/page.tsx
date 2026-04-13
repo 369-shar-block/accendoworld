@@ -9,7 +9,7 @@ import {
 import { productImageUrl } from "@/lib/supabase/image";
 import type { Product } from "@/lib/supabase/types";
 
-export const revalidate = 60;
+export const revalidate = 3600; // 1 hour — product data rarely changes
 
 // Fallback images if the tables are empty or a lookup fails
 const FALLBACK_IMAGE = "/products/new-03.jpeg";

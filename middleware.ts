@@ -6,12 +6,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static, _next/image (build assets)
-     * - favicon.ico, *.png, *.jpg, *.jpeg, *.webp, *.svg (static files)
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|webp|svg|gif)$).*)",
-  ],
+  // Only run auth middleware on admin and login routes — public pages skip it entirely
+  matcher: ["/admin/:path*", "/login"],
 };
