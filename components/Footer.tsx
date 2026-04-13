@@ -1,6 +1,14 @@
 import Link from "next/link";
+import { fetchContactInfo } from "@/lib/supabase/queries";
 
-export default function Footer() {
+export default async function Footer() {
+  const info = await fetchContactInfo();
+
+  const socials = [
+    { name: "Instagram", href: info.instagram_url },
+    { name: "Facebook", href: info.facebook_url },
+  ].filter((s) => s.href && s.href !== "#");
+
   return (
     <footer className="bg-brand-black">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-10">
@@ -18,8 +26,7 @@ export default function Footer() {
               </p>
             </div>
             <p className="text-cream/40 text-sm leading-relaxed max-w-sm font-sans">
-              Premium comfort footwear crafted for the entire family. Where
-              style meets comfort in every step you take.
+              {info.footer_description}
             </p>
           </div>
 
@@ -74,18 +81,18 @@ export default function Footer() {
             <ul className="space-y-4 text-sm text-cream/40 font-sans">
               <li>
                 <a
-                  href="mailto:info@accendoworld.com"
+                  href={`mailto:${info.email}`}
                   className="hover:text-cream transition-colors duration-300 cursor-hover"
                 >
-                  info@accendoworld.com
+                  {info.email}
                 </a>
               </li>
               <li>
                 <span className="hover:text-cream transition-colors duration-300">
-                  www.accendoworld.com
+                  {info.footer_website}
                 </span>
               </li>
-              <li>Global Shipping Available</li>
+              <li>{info.footer_shipping_note}</li>
             </ul>
           </div>
         </div>
@@ -95,21 +102,21 @@ export default function Footer() {
           <p className="text-cream/20 text-xs tracking-[0.1em] font-sans">
             &copy; {new Date().getFullYear()} ACCENDO. All rights reserved.
           </p>
-          <div className="flex gap-8">
-            {[
-              { name: "Instagram", href: "#" },
-              { name: "Facebook", href: "#" },
-              { name: "Twitter", href: "#" },
-            ].map((social) => (
-              <a
-                key={social.name}
-                href={social.href}
-                className="text-cream/20 hover:text-brand-red text-xs tracking-[0.15em] uppercase transition-colors duration-300 cursor-hover font-sans"
-              >
-                {social.name}
-              </a>
-            ))}
-          </div>
+          {socials.length > 0 && (
+            <div className="flex gap-8">
+              {socials.map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cream/20 hover:text-brand-red text-xs tracking-[0.15em] uppercase transition-colors duration-300 cursor-hover font-sans"
+                >
+                  {social.name}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </footer>

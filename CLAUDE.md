@@ -18,6 +18,7 @@
 - **Language:** TypeScript 5.9.3
 - **Styling:** Tailwind CSS 3.x
 - **Animations:** Framer Motion 12.23.26
+- **Backend:** Supabase (Auth, PostgreSQL, Storage)
 - **Deployment:** Vercel (auto-deploy on push to `main`)
 - **Domain:** Cloudflare DNS → Vercel
 - **Repository:** https://github.com/369-shar-block/accendorworld
@@ -30,26 +31,51 @@
 accendorworld/
 ├── app/
 │   ├── layout.tsx              # Root layout (fonts, CustomCursor, metadata)
-│   ├── page.tsx                # Homepage (9 sections, horizontal scroll, parallax)
+│   ├── page.tsx                # Homepage server component (fetches from Supabase)
+│   ├── HomeClient.tsx          # Homepage client component (animations, scroll)
 │   ├── globals.css             # Global styles, button classes, section utilities
-│   ├── about/page.tsx          # About page (7 alternating sections)
-│   ├── collections/page.tsx    # Collections (masonry grid, sticky filters, 101 products)
-│   └── contact/page.tsx        # Contact (editorial form, info cards)
+│   ├── about/
+│   │   ├── page.tsx            # About server wrapper
+│   │   └── AboutClient.tsx     # About client component (animations)
+│   ├── collections/
+│   │   ├── page.tsx            # Collections server component (fetches products)
+│   │   └── CollectionsClient.tsx # Collections client (filters, masonry, animations)
+│   ├── contact/
+│   │   ├── page.tsx            # Contact server component (fetches contact info)
+│   │   └── ContactClient.tsx   # Contact client (form, info cards, social cards)
+│   ├── login/
+│   │   ├── page.tsx            # Login server wrapper
+│   │   └── LoginClient.tsx     # Login form (email + password via Supabase Auth)
+│   └── admin/
+│       ├── layout.tsx          # Admin layout (auth guard + sidebar)
+│       ├── page.tsx            # Dashboard (product stats)
+│       ├── actions.ts          # Server actions (CRUD products, contact, sign out)
+│       ├── products/
+│       │   ├── page.tsx        # Products list (server)
+│       │   └── ProductsAdminClient.tsx  # Products CRUD UI (add/edit/delete)
+│       └── contact/
+│           ├── page.tsx        # Contact editor (server)
+│           └── ContactAdminClient.tsx   # Contact fields form
+├── lib/supabase/
+│   ├── client.ts               # Browser Supabase client
+│   ├── server.ts               # Server component Supabase client
+│   ├── middleware.ts            # Session refresh for middleware
+│   ├── queries.ts              # Server-side data fetching functions
+│   ├── types.ts                # Product, ContactInfo types + field metadata
+│   └── image.ts                # productImageUrl() helper
 ├── components/
 │   ├── Navbar.tsx              # Fixed nav, cream glass on scroll, animated mobile menu
-│   ├── Footer.tsx              # Black bg footer with red accents
+│   ├── Footer.tsx              # Async server component (fetches contact info from Supabase)
 │   ├── CustomCursor.tsx        # Mix-blend-difference cursor (desktop only)
 │   ├── ProductCard.tsx         # Product card with hover effects (cream bg)
 │   └── Hero.tsx                # [DEPRECATED - no longer imported]
-├── public/
-│   └── products/               # 112 product images
-│       ├── IMG-*.jpg           # 59 original images
-│       └── new-01 to 53.jpeg   # 53 new product images
-├── pics/                       # Original source images (not deployed)
-├── inventory/                  # Original product images backup
-├── tailwind.config.ts          # Custom colors, fonts, animations
-├── next.config.js              # images.unoptimized: true
-└── CLAUDE.md                   # This file
+├── middleware.ts                # Session refresh + /admin route protection
+├── supabase/schema.sql          # DB schema, RLS policies, storage bucket
+├── scripts/migrate-to-supabase.mjs  # One-time data migration script
+├── public/products/             # 112 product images (legacy, now in Supabase Storage)
+├── tailwind.config.ts           # Custom colors, fonts, animations
+├── next.config.js               # images.unoptimized: true
+└── CLAUDE.md                    # This file
 ```
 
 ---
@@ -142,31 +168,24 @@ Pages alternate between three moods for visual drama:
 
 ## Product Inventory
 
-**Total Images:** 112 (59 original + 53 new)
+**Storage:** Supabase Storage bucket `products` (public read)
+**Database:** `products` table in Supabase PostgreSQL
+**Total Products:** 90 (managed via /admin/products)
+**Total Images:** 112 in storage (90 used by products, rest are extras)
 
-### Image Naming
-- **Original:** `IMG-YYYYMMDD-WA####.jpg` (59 files)
-- **New:** `new-01.jpeg` through `new-53.jpeg`
+### Product Categories
+| Category | Filter Tab |
+|----------|-----------|
+| Men's Flip Flops | Men's |
+| Men's Slides | Men's |
+| Women's Clogs | Women's |
+| Women's Slides | Women's |
+| Women's Platforms | Women's |
+| Kids' Clogs | Kids' |
+| Kids' Slides | Kids' |
+| Kids' Flip Flops | Kids' |
 
-### Product Categories & Counts
-| Category | Products | Image Prefix |
-|----------|----------|-------------|
-| Men's Flip Flops (David) | 4 | new-03 to 05, 09 |
-| Men's Slides (Sam) | 4 | new-37 to 40 |
-| Men's Slides (Jaxon) | 5 | new-41 to 45 |
-| Women's Clogs (Bow) | 12 | IMG-*WA0010–0021 |
-| Women's Platforms | 6 | IMG-*WA0023–0028 |
-| Women's Slides | 14 | IMG-*WA0002–0006, 0029–0037, WA0107* |
-| Women's Clogs (Platform) | 4 | IMG-*WA0103-0108* |
-| Kids' Clogs (Galaxy) | 5 | new-01, 02, 06, 07, 08 |
-| Kids' Clogs (Toby) | 4 | new-14 to 17 |
-| Kids' Clogs (Lexxy) | 5 | new-18 to 22 |
-| Kids' Clogs (Alex) | 6 | new-23 to 28 |
-| Kids' Clogs (Devin) | 8 | new-29 to 36 |
-| Kids' Slides (Carren) | 4 | new-48 to 51 |
-| Kids' Clogs (Carrie/Lucy) | 2 | new-52, 53 |
-| Kids' Slides (Jaxon) | 2 | new-46, 47 |
-| Kids' Flip Flops (David) | 4 | new-10 to 13 |
+Products are managed via the admin panel at `/admin/products`. Categories must start with "Men's", "Women's", or "Kids'" for the collection filter tabs to work.
 
 ---
 
@@ -211,18 +230,35 @@ transition={{ duration: 0.7 }}
 
 ## Key Files to Edit
 
-**Adding New Products:**
-1. Add image to `public/products/`
-2. Add to `allProducts` array in `app/collections/page.tsx`
-3. Optionally add to `newArrivals` or `bestSellers` in `app/page.tsx`
+**Adding New Products:** Use `/admin/products` in the browser (upload image + fill in details)
+
+**Editing Contact Info:** Use `/admin/contact` in the browser
 
 **Changing Brand Colors:**
 1. Edit `tailwind.config.ts` color tokens
 2. Update `app/globals.css` section/button classes
 
-**Updating Contact Info:**
-1. `components/Footer.tsx`
-2. `app/contact/page.tsx`
+**Data flow:** Server components fetch from Supabase → pass data as props → client components render with animations. ISR revalidation is 60 seconds.
+
+## Admin Panel
+
+- **URL:** `/admin` (protected — requires Supabase Auth login)
+- **Login:** `/login` (email + password)
+- **Role:** Single `editor` role — any authenticated user can manage content
+- **Features:**
+  - Dashboard with product stats
+  - Products: add (with photo upload), edit, delete, toggle visibility/bestseller/new arrival
+  - Contact info: edit all public-facing text (email, shipping, socials, footer, location)
+- **Auth accounts:** Created manually in Supabase dashboard → Authentication → Users
+
+## Supabase
+
+- **Project:** `xtwujonvlegegzikiuki`
+- **Tables:** `profiles`, `products`, `contact_info`
+- **Storage:** `products` bucket (public read, authed write)
+- **RLS:** Public read on products + contact_info; authenticated write
+- **Schema:** `supabase/schema.sql`
+- **Migration:** `scripts/migrate-to-supabase.mjs` (one-time, idempotent)
 
 ---
 
@@ -232,6 +268,7 @@ transition={{ duration: 0.7 }}
 - **Domain:** accendoworld.com (Cloudflare DNS → `cname.vercel-dns.com`)
 - **Auto-deploy:** Push to `main` branch
 - **Production URLs:** https://accendoworld.com, https://accendoworld.vercel.app
+- **Env vars on Vercel:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (do NOT add service role key)
 
 ### DNS (Cloudflare)
 - Type: CNAME, Name: @, Target: cname.vercel-dns.com, Proxy: OFF
@@ -255,11 +292,11 @@ npm run lint         # Linter
 1. **Images:** Using `unoptimized: true` — consider enabling Vercel image optimization
 2. **Contact Form:** Resets on submit but doesn't send data — wire up to email service (Resend, SendGrid)
 3. **Newsletter:** Not connected to any service — integrate with Mailchimp/ConvertKit
-4. **Product Data:** Hardcoded in page files — consider moving to JSON/database
-5. **Hero.tsx:** Deprecated component, no longer imported — can be deleted
+4. **Hero.tsx:** Deprecated component, no longer imported — can be deleted
+5. **public/products/:** Legacy image files still exist locally; all images now served from Supabase Storage
 
 ---
 
-**Last Updated:** March 2026
-**Version:** 2.0.0
-**Status:** Production Ready
+**Last Updated:** April 2026
+**Version:** 3.0.0
+**Status:** Production Ready (with admin panel)
