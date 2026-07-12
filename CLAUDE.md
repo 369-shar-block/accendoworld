@@ -265,7 +265,7 @@ transition={{ duration: 0.7 }}
 
 - **Project:** `xtwujonvlegegzikiuki`
 - **Tables:** `profiles`, `products`, `reels`, `contact_info`
-- **Storage:** `products` bucket + `reels` bucket (both public read, authed write; `reels` file_size_limit 100 MB)
+- **Storage:** `products` bucket + `reels` bucket (both public read, authed write; `reels` file_size_limit 50 MB = project global limit). Reel videos upload **directly browser→Storage** (bypasses Vercel's ~4.5 MB Server Action body cap); the `createReel` action only inserts the row.
 - **RLS:** Public read on products + reels + contact_info; authenticated write
 - **Schema:** `supabase/schema.sql` (reels = section 6). Run SQL from this machine via the Supabase Management API + CredMan token `Supabase CLI:supabase` (see user memory `supabase-sql-runner`).
 - **Migration:** `scripts/migrate-to-supabase.mjs` (one-time, idempotent)

@@ -211,10 +211,12 @@ create policy "reels authed delete"
   on public.reels for delete to authenticated
   using (true);
 
--- Storage bucket for reel videos + poster images (100 MB per file)
+-- Storage bucket for reel videos + poster images.
+-- Capped at 50 MB to match the project-wide storage limit (Supabase default);
+-- raising this alone has no effect unless the global limit is also raised.
 insert into storage.buckets (id, name, public, file_size_limit)
-values ('reels', 'reels', true, 104857600)
-on conflict (id) do update set public = true, file_size_limit = 104857600;
+values ('reels', 'reels', true, 52428800)
+on conflict (id) do update set public = true, file_size_limit = 52428800;
 
 drop policy if exists "reel media public read"   on storage.objects;
 drop policy if exists "reel media authed insert" on storage.objects;

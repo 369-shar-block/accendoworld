@@ -5,7 +5,7 @@ import type { Reel } from "@/lib/supabase/types";
 import { createClient } from "@/lib/supabase/client";
 import { createReel, deleteReel, updateReel } from "../actions";
 
-const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50 MB — matches Supabase project storage limit
 
 function slugify(s: string): string {
   return (
@@ -313,7 +313,7 @@ function AddReelForm({
       return;
     }
     if (video.size > MAX_VIDEO_BYTES) {
-      onError("That video is too large. Please use one under 100 MB.");
+      onError("That video is too large. Please use one under 50 MB.");
       return;
     }
 

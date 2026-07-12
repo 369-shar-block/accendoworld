@@ -118,7 +118,7 @@ This same handle also powers the Instagram links in the footer and on the contac
 ### Adding a reel
 
 1. On the Reels page, click **+ Add reel**
-2. **Vertical video (9:16)** — click the dashed box and choose your video file. Use a tall, phone-shaped video (the same shape as an Instagram Reel or Story). MP4 works best. Keep it short (around 30 seconds) and under about 100 MB.
+2. **Vertical video (9:16)** — click the dashed box and choose your video file. Use a tall, phone-shaped video (the same shape as an Instagram Reel or Story). MP4 works best. The file must be **under 50 MB** (that is the storage limit). Around 30 seconds is a good length; that is a suggestion, not a limit, but shorter videos upload faster and load faster for visitors.
 3. **Title** (optional) — a name just for your own reference; visitors may see it as a small caption
 4. **Instagram post link** (optional) — paste the link to that specific reel on Instagram if you want the "open in a new tab" (desktop) to land on that exact post. Leave it blank to just open your profile.
 5. **Cover image** (optional) — a still picture shown for a moment while the video loads. If you skip it, the video's first frame is used.
