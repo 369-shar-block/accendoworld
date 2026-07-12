@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform, useInView } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import ReelsSection, { type HomeReel } from "@/components/ReelsSection";
 
 // ─── TYPES ───
 
@@ -27,6 +28,12 @@ type Props = {
     kids: string;
   };
   storyImage: string;
+  reels: HomeReel[];
+  instagram: {
+    handle: string;
+    profileUrl: string;
+    appUrl: string;
+  };
 };
 
 const marqueeText =
@@ -89,6 +96,8 @@ export default function HomeClient({
   heroImages,
   categoryImages,
   storyImage,
+  reels,
+  instagram,
 }: Props) {
   // Horizontal scroll
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -434,7 +443,7 @@ export default function HomeClient({
                 key={i}
                 className="w-[260px] sm:w-[300px] lg:w-[320px] flex-shrink-0 group cursor-hover"
               >
-                <div className="relative aspect-[3/4] overflow-hidden bg-brand-charcoal">
+                <div className="relative aspect-square overflow-hidden bg-brand-charcoal">
                   <Image
                     src={product.image}
                     alt={product.title}
@@ -543,7 +552,7 @@ export default function HomeClient({
               >
                 <div
                   className={`relative overflow-hidden bg-brand-charcoal ${
-                    i === 0 ? "aspect-[4/3] lg:aspect-auto lg:h-full" : "aspect-[3/4]"
+                    i === 0 ? "aspect-square lg:aspect-auto lg:h-full" : "aspect-square"
                   }`}
                 >
                   <Image
@@ -601,6 +610,16 @@ export default function HomeClient({
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════
+          REELS — Dark bg, vertical Instagram videos
+          ═══════════════════════════════════════ */}
+      <ReelsSection
+        reels={reels}
+        handle={instagram.handle}
+        profileUrl={instagram.profileUrl}
+        appUrl={instagram.appUrl}
+      />
 
       {/* ═══════════════════════════════════════
           NEWSLETTER — Cream bg

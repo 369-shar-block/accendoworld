@@ -163,3 +163,76 @@ create policy "product images authed update"
 create policy "product images authed delete"
   on storage.objects for delete to authenticated
   using (bucket_id = 'products');
+
+-- ---------------------------------------------------------------------
+-- 6. reels  —  short-form vertical (9:16) videos linked to Instagram
+-- ---------------------------------------------------------------------
+create table if not exists public.reels (
+  id            uuid primary key default gen_random_uuid(),
+  title         text,                      -- optional label (editor reference)
+  video_path    text not null,             -- path inside the "reels" storage bucket
+  poster_path   text,                      -- optional still image inside "reels"
+  instagram_url text,                       -- optional specific post link; blank => profile
+  display_order integer not null default 0,
+  is_visible    boolean not null default true,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists reels_display_order_idx on public.reels (display_order);
+create index if not exists reels_visible_idx        on public.reels (is_visible);
+
+drop trigger if exists reels_set_updated_at on public.reels;
+create trigger reels_set_updated_at
+  before update on public.reels
+  for each row execute function public.set_updated_at();
+
+alter table public.reels enable row level security;
+
+-- reels: public read; any signed-in user can write
+drop policy if exists "reels public read"   on public.reels;
+drop policy if exists "reels authed insert"  on public.reels;
+drop policy if exists "reels authed update"  on public.reels;
+drop policy if exists "reels authed delete"  on public.reels;
+
+create policy "reels public read"
+  on public.reels for select
+  using (true);
+
+create policy "reels authed insert"
+  on public.reels for insert to authenticated
+  with check (true);
+
+create policy "reels authed update"
+  on public.reels for update to authenticated
+  using (true) with check (true);
+
+create policy "reels authed delete"
+  on public.reels for delete to authenticated
+  using (true);
+
+-- Storage bucket for reel videos + poster images (100 MB per file)
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('reels', 'reels', true, 104857600)
+on conflict (id) do update set public = true, file_size_limit = 104857600;
+
+drop policy if exists "reel media public read"   on storage.objects;
+drop policy if exists "reel media authed insert" on storage.objects;
+drop policy if exists "reel media authed update" on storage.objects;
+drop policy if exists "reel media authed delete" on storage.objects;
+
+create policy "reel media public read"
+  on storage.objects for select
+  using (bucket_id = 'reels');
+
+create policy "reel media authed insert"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'reels');
+
+create policy "reel media authed update"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'reels') with check (bucket_id = 'reels');
+
+create policy "reel media authed delete"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'reels');

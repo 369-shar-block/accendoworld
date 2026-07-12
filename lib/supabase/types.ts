@@ -12,6 +12,18 @@ export type Product = {
   updated_at: string;
 };
 
+export type Reel = {
+  id: string;
+  title: string | null;
+  video_path: string;
+  poster_path: string | null;
+  instagram_url: string | null; // optional link to the specific post; blank => profile
+  display_order: number;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ContactInfo = {
   key: string;
   value: string;
@@ -32,6 +44,7 @@ export const CONTACT_DEFAULTS: ContactInfoMap = {
   location_headline_2: "Serving the World",
   location_body:
     "From our workshop in India, ACCENDO ships premium comfort footwear to customers across the globe. No matter where you are, a step ahead is just an order away.",
+  instagram_handle: "",
   instagram_url: "#",
   facebook_url: "#",
   twitter_url: "#",
@@ -52,6 +65,7 @@ export const CONTACT_FIELD_META: Array<{
   { key: "location_headline_1", label: "Location headline (line 1)", description: "Dark section on the contact page" },
   { key: "location_headline_2", label: "Location headline (line 2)", description: "Rendered in italics" },
   { key: "location_body", label: "Location description", description: "Body copy under the location headline", multiline: true },
-  { key: "instagram_url", label: "Instagram URL", description: "Shown as a card on the contact page and in the footer. Leave as # to hide" },
+  { key: "instagram_handle", label: "Instagram handle", description: "Your Instagram username only, e.g. accendoworld (no @, no link). Powers the Reels section links and the Instagram links in the footer/contact page." },
+  { key: "instagram_url", label: "Instagram URL (optional)", description: "Only needed to override the link built from your handle above. Leave as # to fall back to your handle" },
   { key: "facebook_url", label: "Facebook URL", description: "Shown as a card on the contact page and in the footer. Leave as # to hide" },
 ];

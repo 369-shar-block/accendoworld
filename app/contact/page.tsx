@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ContactClient from "./ContactClient";
 import { fetchContactInfo } from "@/lib/supabase/queries";
+import { resolveInstagramUrl } from "@/lib/instagram";
 
 export const revalidate = 3600;
 
@@ -19,7 +20,7 @@ export default async function ContactPage() {
           location_headline_1: info.location_headline_1,
           location_headline_2: info.location_headline_2,
           location_body: info.location_body,
-          instagram_url: info.instagram_url,
+          instagram_url: resolveInstagramUrl(info.instagram_handle, info.instagram_url),
           facebook_url: info.facebook_url,
         }}
       />

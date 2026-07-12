@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { fetchContactInfo } from "@/lib/supabase/queries";
+import { resolveInstagramUrl } from "@/lib/instagram";
 
 export default async function Footer() {
   const info = await fetchContactInfo();
 
   const socials = [
-    { name: "Instagram", href: info.instagram_url },
+    { name: "Instagram", href: resolveInstagramUrl(info.instagram_handle, info.instagram_url) },
     { name: "Facebook", href: info.facebook_url },
   ].filter((s) => s.href && s.href !== "#");
 

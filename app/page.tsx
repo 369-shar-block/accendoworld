@@ -3,10 +3,17 @@ import Footer from "@/components/Footer";
 import HomeClient from "./HomeClient";
 import {
   fetchBestsellers,
+  fetchContactInfo,
   fetchNewArrivals,
   fetchVisibleProducts,
+  fetchVisibleReels,
 } from "@/lib/supabase/queries";
-import { productImageUrl } from "@/lib/supabase/image";
+import { productImageUrl, reelAssetUrl } from "@/lib/supabase/image";
+import {
+  instagramAppUrl,
+  normalizeHandle,
+  resolveInstagramUrl,
+} from "@/lib/instagram";
 import type { Product } from "@/lib/supabase/types";
 
 export const revalidate = 3600; // 1 hour — product data rarely changes
@@ -28,11 +35,14 @@ function pickImage(products: Product[], title: string, fallback: string): string
 }
 
 export default async function Home() {
-  const [allProducts, bestsellers, newArrivals] = await Promise.all([
-    fetchVisibleProducts(),
-    fetchBestsellers(),
-    fetchNewArrivals(),
-  ]);
+  const [allProducts, bestsellers, newArrivals, reels, contactInfo] =
+    await Promise.all([
+      fetchVisibleProducts(),
+      fetchBestsellers(),
+      fetchNewArrivals(),
+      fetchVisibleReels(),
+      fetchContactInfo(),
+    ]);
 
   // Sort new arrivals by display_order (already done by query) and map
   const newArrivalsClient = newArrivals.map((p) => toClientProduct(p));
@@ -63,6 +73,24 @@ export default async function Home() {
     FALLBACK_IMAGE
   );
 
+  // Reels → client shape
+  const reelsClient = reels.map((r) => ({
+    id: r.id,
+    title: r.title,
+    videoUrl: reelAssetUrl(r.video_path),
+    posterUrl: reelAssetUrl(r.poster_path),
+    instagramUrl: r.instagram_url,
+  }));
+
+  const instagram = {
+    handle: normalizeHandle(contactInfo.instagram_handle),
+    profileUrl: resolveInstagramUrl(
+      contactInfo.instagram_handle,
+      contactInfo.instagram_url
+    ),
+    appUrl: instagramAppUrl(contactInfo.instagram_handle),
+  };
+
   return (
     <main className="min-h-screen">
       <Navbar />
@@ -72,6 +100,8 @@ export default async function Home() {
         heroImages={heroImages}
         categoryImages={categoryImages}
         storyImage={storyImage}
+        reels={reelsClient}
+        instagram={instagram}
       />
       <Footer />
     </main>

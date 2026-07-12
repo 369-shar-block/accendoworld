@@ -53,21 +53,28 @@ accendorworld/
 │       ├── products/
 │       │   ├── page.tsx        # Products list (server)
 │       │   └── ProductsAdminClient.tsx  # Products CRUD UI (add/edit/delete)
+│       ├── reels/
+│       │   ├── page.tsx        # Reels list (server) + IG handle status banner
+│       │   └── ReelsAdminClient.tsx     # Reels CRUD UI (video upload, edit, delete)
 │       └── contact/
 │           ├── page.tsx        # Contact editor (server)
 │           └── ContactAdminClient.tsx   # Contact fields form
-├── lib/supabase/
-│   ├── client.ts               # Browser Supabase client
-│   ├── server.ts               # Server component Supabase client
-│   ├── middleware.ts            # Session refresh for middleware
-│   ├── queries.ts              # Server-side data fetching functions
-│   ├── types.ts                # Product, ContactInfo types + field metadata
-│   └── image.ts                # productImageUrl() helper
+├── lib/
+│   ├── instagram.ts            # normalizeHandle / instagramWebUrl / instagramAppUrl / resolveInstagramUrl
+│   └── supabase/
+│       ├── client.ts           # Browser Supabase client
+│       ├── server.ts           # Server component Supabase client
+│       ├── middleware.ts        # Session refresh for middleware
+│       ├── queries.ts          # Server-side data fetching (products, reels, contact)
+│       ├── types.ts            # Product, Reel, ContactInfo types + field metadata
+│       └── image.ts            # productImageUrl() + reelAssetUrl() helpers
 ├── components/
 │   ├── Navbar.tsx              # Fixed nav, cream glass on scroll, animated mobile menu
 │   ├── Footer.tsx              # Async server component (fetches contact info from Supabase)
 │   ├── CustomCursor.tsx        # Mix-blend-difference cursor (desktop only)
-│   ├── ProductCard.tsx         # Product card with hover effects (cream bg)
+│   ├── ProductCard.tsx         # Square product card, hover effects, opens Lightbox on click
+│   ├── Lightbox.tsx            # Full-res image modal (backdrop/X/arrows/Esc, scroll-lock)
+│   ├── ReelsSection.tsx        # Homepage "On Instagram" rail: autoplay 9:16 video + IG deep-link
 │   └── Hero.tsx                # [DEPRECATED - no longer imported]
 ├── middleware.ts                # Session refresh + /admin route protection
 ├── supabase/schema.sql          # DB schema, RLS policies, storage bucket
@@ -136,15 +143,17 @@ Pages alternate between three moods for visual drama:
 5. **Brand Story (Cream)** — Split layout: serif quote left, parallax image right with red accent block
 6. **Bestsellers (Dark)** — Asymmetric grid (first item 2x2), hover reveals category/title
 7. **Stats Band (Red)** — Animated counters: 110+ Products, 3 Collections, 20+ Styles, ∞ Comfort
-8. **Newsletter (Cream)** — Email signup form
-9. **Footer (Black)**
+8. **Reels / On Instagram (Dark)** — Horizontal rail of autoplay 9:16 videos; only rendered when visible reels exist; tap → Instagram (app on mobile, web tab on desktop)
+9. **Newsletter (Cream)** — Email signup form
+10. **Footer (Black)**
 
 ### Collections (`/collections`)
 - Hero with text reveal animation
 - Sticky filter pills: All, Men's, Women's, Kids'
-- CSS masonry layout (`columns-2 lg:columns-3 xl:columns-4`)
+- CSS masonry layout (`columns-2 lg:columns-3 xl:columns-4`), **square** product cells
 - AnimatePresence for filter transitions
 - 101 total products displayed
+- **Lightbox:** clicking any product image opens `components/Lightbox.tsx` — full-res image, 85% dark backdrop, X + prev/next arrows (cycles the filtered list), close via X / backdrop / Esc, background scroll locked
 - Red CTA band at bottom
 
 ### About (`/about`) — 7 sections
@@ -248,16 +257,17 @@ transition={{ duration: 0.7 }}
 - **Features:**
   - Dashboard with product stats
   - Products: add (with photo upload), edit, delete, toggle visibility/bestseller/new arrival
-  - Contact info: edit all public-facing text (email, shipping, socials, footer, location)
+  - Reels: upload vertical video (+ optional poster), edit title/IG link/visibility, delete (`/admin/reels`)
+  - Contact info: edit all public-facing text (email, shipping, socials, footer, location) + **Instagram handle** (username only — powers reels links + footer/contact IG links via `resolveInstagramUrl`)
 - **Auth accounts:** Created manually in Supabase dashboard → Authentication → Users
 
 ## Supabase
 
 - **Project:** `xtwujonvlegegzikiuki`
-- **Tables:** `profiles`, `products`, `contact_info`
-- **Storage:** `products` bucket (public read, authed write)
-- **RLS:** Public read on products + contact_info; authenticated write
-- **Schema:** `supabase/schema.sql`
+- **Tables:** `profiles`, `products`, `reels`, `contact_info`
+- **Storage:** `products` bucket + `reels` bucket (both public read, authed write; `reels` file_size_limit 100 MB)
+- **RLS:** Public read on products + reels + contact_info; authenticated write
+- **Schema:** `supabase/schema.sql` (reels = section 6). Run SQL from this machine via the Supabase Management API + CredMan token `Supabase CLI:supabase` (see user memory `supabase-sql-runner`).
 - **Migration:** `scripts/migrate-to-supabase.mjs` (one-time, idempotent)
 
 ---
@@ -297,6 +307,11 @@ npm run lint         # Linter
 
 ---
 
-**Last Updated:** April 2026
-**Version:** 3.0.0
-**Status:** Production Ready (with admin panel)
+**Last Updated:** July 2026
+**Version:** 3.1.0
+**Status:** Production Ready (admin panel + reels + image lightbox)
+
+### v3.1.0 changelog
+- **Reels:** new `reels` table + `reels` storage bucket, `/admin/reels` CRUD, homepage "On Instagram" section (`components/ReelsSection.tsx`) with autoplay-muted-loop 9:16 video and Instagram deep-linking (mobile `instagram://user?username=` app link with web fallback; desktop new secure tab). Instagram handle set once in `/admin/contact`.
+- **Lightbox:** `components/Lightbox.tsx` on the collections page — full-res image modal with backdrop/X/arrows/Esc and background scroll-lock.
+- **Square images:** product cards + home New Arrivals/Bestsellers switched from `aspect-[3/4]` to `aspect-square` so native 1600×1600 photos display fully (no edge cropping, no layout shift).

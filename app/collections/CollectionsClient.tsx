@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
+import Lightbox from "@/components/Lightbox";
 
 // ─── TYPES ───
 
@@ -34,6 +35,7 @@ const EASE_CUSTOM = [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]
 
 export default function CollectionsClient({ products }: Props) {
   const [activeFilter, setActiveFilter] = useState<FilterKey>("All");
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const filteredProducts = useMemo(() => {
     if (activeFilter === "All") return products;
@@ -116,7 +118,10 @@ export default function CollectionsClient({ products }: Props) {
               return (
                 <button
                   key={filter.key}
-                  onClick={() => setActiveFilter(filter.key)}
+                  onClick={() => {
+                    setActiveFilter(filter.key);
+                    setLightboxIndex(null);
+                  }}
                   className={`cursor-hover relative flex items-center gap-2 px-5 py-2 rounded-full text-[11px] tracking-[0.18em] uppercase font-sans font-medium whitespace-nowrap transition-all duration-300 ${
                     isActive
                       ? "bg-brand-red text-white shadow-lg shadow-brand-red/25"
@@ -170,6 +175,7 @@ export default function CollectionsClient({ products }: Props) {
                     image={product.image}
                     title={product.title}
                     category={product.category}
+                    onImageClick={() => setLightboxIndex(index)}
                   />
                 </motion.div>
               ))}
@@ -221,6 +227,16 @@ export default function CollectionsClient({ products }: Props) {
           </motion.div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════
+          LIGHTBOX — full-res image viewer
+          ═══════════════════════════════════════ */}
+      <Lightbox
+        items={filteredProducts}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onIndexChange={setLightboxIndex}
+      />
     </>
   );
 }

@@ -11,3 +11,15 @@ export function productImageUrl(imagePath: string): string {
   if (!base) return imagePath;
   return `${base}/storage/v1/object/public/products/${imagePath}`;
 }
+
+/**
+ * Build the public URL for an asset (video or poster image) stored in the
+ * Supabase "reels" bucket.
+ */
+export function reelAssetUrl(path: string | null | undefined): string {
+  if (!path) return "";
+  if (path.startsWith("http") || path.startsWith("/")) return path;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!base) return path;
+  return `${base}/storage/v1/object/public/reels/${path}`;
+}

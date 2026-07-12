@@ -130,6 +130,130 @@ export async function createProduct(formData: FormData) {
   return { ok: true };
 }
 
+// ---- Reels (short-form vertical videos) ----
+
+export async function createReel(formData: FormData) {
+  const title = ((formData.get("title") as string) ?? "").trim() || null;
+  const instagram_url_raw = ((formData.get("instagram_url") as string) ?? "").trim();
+  const instagram_url = instagram_url_raw || null;
+  const video = formData.get("video") as File | null;
+  const poster = formData.get("poster") as File | null;
+  const is_visible = formData.get("is_visible") === "on";
+
+  if (!video || video.size === 0) return { error: "Please choose a video file" };
+  if (!video.type.startsWith("video/")) {
+    return { error: "That file is not a video. Please upload an MP4 (or MOV/WebM)." };
+  }
+
+  const supabase = await createClient();
+
+  const slug = (title ?? "reel")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "reel";
+
+  // Upload the video.
+  const videoExt = (video.name.split(".").pop() ?? "mp4").toLowerCase();
+  const videoName = `${slug}-${Date.now()}.${videoExt}`;
+  const { error: videoErr } = await supabase.storage
+    .from("reels")
+    .upload(videoName, video, {
+      cacheControl: "31536000",
+      upsert: false,
+      contentType: video.type || undefined,
+    });
+  if (videoErr) return { error: `Video upload failed: ${videoErr.message}` };
+
+  // Optionally upload a poster image (shown before the video loads).
+  let posterName: string | null = null;
+  if (poster && poster.size > 0 && poster.type.startsWith("image/")) {
+    const posterExt = (poster.name.split(".").pop() ?? "jpg").toLowerCase();
+    posterName = `${slug}-poster-${Date.now()}.${posterExt}`;
+    const { error: posterErr } = await supabase.storage
+      .from("reels")
+      .upload(posterName, poster, {
+        cacheControl: "31536000",
+        upsert: false,
+        contentType: poster.type || undefined,
+      });
+    if (posterErr) posterName = null; // poster is optional — don't fail the whole reel
+  }
+
+  // Determine next display_order (end of list).
+  const { data: maxRow } = await supabase
+    .from("reels")
+    .select("display_order")
+    .order("display_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const display_order = (maxRow?.display_order ?? -1) + 1;
+
+  const { error: insertErr } = await supabase.from("reels").insert({
+    title,
+    video_path: videoName,
+    poster_path: posterName,
+    instagram_url,
+    display_order,
+    is_visible,
+  });
+
+  if (insertErr) {
+    // Roll back uploads if the insert failed.
+    const toRemove = [videoName];
+    if (posterName) toRemove.push(posterName);
+    await supabase.storage.from("reels").remove(toRemove);
+    return { error: insertErr.message };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/reels");
+  return { ok: true };
+}
+
+export async function updateReel(formData: FormData) {
+  const id = formData.get("id") as string;
+  const title = ((formData.get("title") as string) ?? "").trim() || null;
+  const instagram_url_raw = ((formData.get("instagram_url") as string) ?? "").trim();
+  const instagram_url = instagram_url_raw || null;
+  const is_visible = formData.get("is_visible") === "on";
+
+  if (!id) return { error: "Missing reel id" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("reels")
+    .update({ title, instagram_url, is_visible })
+    .eq("id", id);
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/");
+  revalidatePath("/admin/reels");
+  return { ok: true };
+}
+
+export async function deleteReel(formData: FormData) {
+  const id = formData.get("id") as string;
+  const video_path = formData.get("video_path") as string;
+  const poster_path = (formData.get("poster_path") as string) || "";
+  if (!id) return { error: "Missing reel id" };
+
+  const supabase = await createClient();
+
+  const { error: dbErr } = await supabase.from("reels").delete().eq("id", id);
+  if (dbErr) return { error: dbErr.message };
+
+  // Best-effort: remove the media from storage.
+  const toRemove = [video_path, poster_path].filter(Boolean);
+  if (toRemove.length > 0) {
+    await supabase.storage.from("reels").remove(toRemove);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/reels");
+  return { ok: true };
+}
+
 // ---- Contact info ----
 
 export async function updateContactInfo(formData: FormData) {

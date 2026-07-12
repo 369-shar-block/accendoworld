@@ -1,5 +1,10 @@
 import { createClient } from "./server";
-import { CONTACT_DEFAULTS, type ContactInfoMap, type Product } from "./types";
+import {
+  CONTACT_DEFAULTS,
+  type ContactInfoMap,
+  type Product,
+  type Reel,
+} from "./types";
 
 /** Fetch all visible products, sorted by display_order then created_at. */
 export async function fetchVisibleProducts(): Promise<Product[]> {
@@ -50,6 +55,24 @@ export async function fetchNewArrivals(): Promise<Product[]> {
     return [];
   }
   return (data ?? []) as Product[];
+}
+
+/** Fetch all visible reels, sorted by display_order then created_at. */
+export async function fetchVisibleReels(): Promise<Reel[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reels")
+    .select("*")
+    .eq("is_visible", true)
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    // Table may not exist yet (before the migration runs) — fail soft.
+    console.error("[fetchVisibleReels]", error);
+    return [];
+  }
+  return (data ?? []) as Reel[];
 }
 
 /** Fetch contact_info as a flat map, merged over defaults. */
