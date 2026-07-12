@@ -132,52 +132,28 @@ export async function createProduct(formData: FormData) {
 
 // ---- Reels (short-form vertical videos) ----
 
-export async function createReel(formData: FormData) {
-  const title = ((formData.get("title") as string) ?? "").trim() || null;
-  const instagram_url_raw = ((formData.get("instagram_url") as string) ?? "").trim();
-  const instagram_url = instagram_url_raw || null;
-  const video = formData.get("video") as File | null;
-  const poster = formData.get("poster") as File | null;
-  const is_visible = formData.get("is_visible") === "on";
+/**
+ * Insert a reel row. The video (and optional poster) are uploaded to Supabase
+ * Storage directly from the browser BEFORE this runs — large files can't go
+ * through a Server Action (Vercel caps the request body at ~4.5 MB). So this
+ * only receives the small text metadata + the already-uploaded storage paths.
+ */
+export async function createReel(input: {
+  title?: string | null;
+  instagram_url?: string | null;
+  is_visible?: boolean;
+  video_path: string;
+  poster_path?: string | null;
+}) {
+  const video_path = (input.video_path ?? "").trim();
+  if (!video_path) return { error: "Missing uploaded video." };
 
-  if (!video || video.size === 0) return { error: "Please choose a video file" };
-  if (!video.type.startsWith("video/")) {
-    return { error: "That file is not a video. Please upload an MP4 (or MOV/WebM)." };
-  }
+  const title = (input.title ?? "").trim() || null;
+  const instagram_url = (input.instagram_url ?? "").trim() || null;
+  const poster_path = (input.poster_path ?? "").trim() || null;
+  const is_visible = input.is_visible ?? true;
 
   const supabase = await createClient();
-
-  const slug = (title ?? "reel")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "reel";
-
-  // Upload the video.
-  const videoExt = (video.name.split(".").pop() ?? "mp4").toLowerCase();
-  const videoName = `${slug}-${Date.now()}.${videoExt}`;
-  const { error: videoErr } = await supabase.storage
-    .from("reels")
-    .upload(videoName, video, {
-      cacheControl: "31536000",
-      upsert: false,
-      contentType: video.type || undefined,
-    });
-  if (videoErr) return { error: `Video upload failed: ${videoErr.message}` };
-
-  // Optionally upload a poster image (shown before the video loads).
-  let posterName: string | null = null;
-  if (poster && poster.size > 0 && poster.type.startsWith("image/")) {
-    const posterExt = (poster.name.split(".").pop() ?? "jpg").toLowerCase();
-    posterName = `${slug}-poster-${Date.now()}.${posterExt}`;
-    const { error: posterErr } = await supabase.storage
-      .from("reels")
-      .upload(posterName, poster, {
-        cacheControl: "31536000",
-        upsert: false,
-        contentType: poster.type || undefined,
-      });
-    if (posterErr) posterName = null; // poster is optional — don't fail the whole reel
-  }
 
   // Determine next display_order (end of list).
   const { data: maxRow } = await supabase
@@ -190,20 +166,14 @@ export async function createReel(formData: FormData) {
 
   const { error: insertErr } = await supabase.from("reels").insert({
     title,
-    video_path: videoName,
-    poster_path: posterName,
+    video_path,
+    poster_path,
     instagram_url,
     display_order,
     is_visible,
   });
 
-  if (insertErr) {
-    // Roll back uploads if the insert failed.
-    const toRemove = [videoName];
-    if (posterName) toRemove.push(posterName);
-    await supabase.storage.from("reels").remove(toRemove);
-    return { error: insertErr.message };
-  }
+  if (insertErr) return { error: insertErr.message };
 
   revalidatePath("/");
   revalidatePath("/admin/reels");

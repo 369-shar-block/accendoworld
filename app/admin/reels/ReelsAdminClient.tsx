@@ -2,7 +2,19 @@
 
 import { useState, useTransition } from "react";
 import type { Reel } from "@/lib/supabase/types";
+import { createClient } from "@/lib/supabase/client";
 import { createReel, deleteReel, updateReel } from "../actions";
+
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB
+
+function slugify(s: string): string {
+  return (
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "reel"
+  );
+}
 
 type AdminReel = Reel & { videoUrl: string; posterUrl: string };
 
@@ -279,14 +291,103 @@ function AddReelForm({
 }) {
   const [isPending, startTransition] = useTransition();
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+
+    const video = fd.get("video") as File | null;
+    const poster = fd.get("poster") as File | null;
+    const title = ((fd.get("title") as string) ?? "").trim();
+    const instagram_url = ((fd.get("instagram_url") as string) ?? "").trim();
+    const is_visible = fd.get("is_visible") === "on";
+
+    // Validate before uploading anything.
+    if (!video || video.size === 0) {
+      onError("Please choose a video file.");
+      return;
+    }
+    if (!video.type.startsWith("video/")) {
+      onError("That file is not a video. Please upload an MP4 (or MOV/WebM).");
+      return;
+    }
+    if (video.size > MAX_VIDEO_BYTES) {
+      onError("That video is too large. Please use one under 100 MB.");
+      return;
+    }
+
     startTransition(async () => {
-      const result = await createReel(fd);
-      if (result?.error) onError(result.error);
-      else onSuccess();
+      // Upload the file(s) straight from the browser to Supabase Storage.
+      // (Large files cannot pass through a Server Action on Vercel.)
+      const supabase = createClient();
+      const slug = slugify(title);
+      const stamp = Date.now();
+      const videoExt = (video.name.split(".").pop() || "mp4").toLowerCase();
+      const videoName = `${slug}-${stamp}.${videoExt}`;
+      let posterName: string | null = null;
+
+      try {
+        setStatus("Uploading video…");
+        const { error: vErr } = await supabase.storage
+          .from("reels")
+          .upload(videoName, video, {
+            cacheControl: "31536000",
+            upsert: false,
+            contentType: video.type || undefined,
+          });
+        if (vErr) throw new Error(`Video upload failed: ${vErr.message}`);
+
+        // Optional cover image.
+        if (poster && poster.size > 0 && poster.type.startsWith("image/")) {
+          setStatus("Uploading cover image…");
+          const posterExt = (poster.name.split(".").pop() || "jpg").toLowerCase();
+          posterName = `${slug}-poster-${stamp}.${posterExt}`;
+          const { error: pErr } = await supabase.storage
+            .from("reels")
+            .upload(posterName, poster, {
+              cacheControl: "31536000",
+              upsert: false,
+              contentType: poster.type || undefined,
+            });
+          if (pErr) posterName = null; // poster is optional — don't fail the reel
+        }
+
+        setStatus("Saving…");
+        const result = await createReel({
+          title: title || null,
+          instagram_url: instagram_url || null,
+          is_visible,
+          video_path: videoName,
+          poster_path: posterName,
+        });
+
+        if (result?.error) {
+          // Roll back the uploaded file(s) if the DB insert failed.
+          const toRemove = [videoName];
+          if (posterName) toRemove.push(posterName);
+          await supabase.storage.from("reels").remove(toRemove);
+          onError(result.error);
+          setStatus(null);
+          return;
+        }
+
+        setStatus(null);
+        onSuccess();
+      } catch (err) {
+        // Best-effort cleanup, then show a friendly message.
+        try {
+          const toRemove = [videoName];
+          if (posterName) toRemove.push(posterName);
+          await supabase.storage.from("reels").remove(toRemove);
+        } catch {
+          /* ignore cleanup errors */
+        }
+        onError(
+          err instanceof Error ? err.message : "Upload failed. Please try again."
+        );
+        setStatus(null);
+      }
     });
   }
 
@@ -395,7 +496,7 @@ function AddReelForm({
 
           <div className="flex gap-3 pt-2">
             <button type="submit" disabled={isPending} className="btn-fill disabled:opacity-50">
-              {isPending ? "Uploading…" : "Add reel"}
+              {isPending ? status ?? "Uploading…" : "Add reel"}
             </button>
             <button
               type="button"
