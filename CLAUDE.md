@@ -49,7 +49,7 @@ accendorworld/
 │   └── admin/
 │       ├── layout.tsx          # Admin layout (auth guard + sidebar)
 │       ├── page.tsx            # Dashboard (product stats)
-│       ├── actions.ts          # Server actions (CRUD products, contact, sign out)
+│       ├── actions.ts          # Server actions (CRUD products + reels, contact, sign out)
 │       ├── products/
 │       │   ├── page.tsx        # Products list (server)
 │       │   └── ProductsAdminClient.tsx  # Products CRUD UI (add/edit/delete)
@@ -135,7 +135,7 @@ Pages alternate between three moods for visual drama:
 
 ## Pages & Sections
 
-### Homepage (`/`) — 9 sections
+### Homepage (`/`) — 10 sections
 1. **Hero (Cream)** — Massive "ACCENDO" text with clipPath reveal, 3 floating product images, tagline, CTA buttons, scroll indicator
 2. **Red Marquee** — Scrolling white text on brand red band
 3. **Category Showcase (Cream)** — Asymmetric bento grid: large Women's left, Men + Kids stacked right
@@ -247,7 +247,9 @@ transition={{ duration: 0.7 }}
 1. Edit `tailwind.config.ts` color tokens
 2. Update `app/globals.css` section/button classes
 
-**Data flow:** Server components fetch from Supabase → pass data as props → client components render with animations. ISR revalidation is 60 seconds.
+**Adding Reels:** Use `/admin/reels` in the browser (upload a vertical video; set the Instagram handle once in `/admin/contact`)
+
+**Data flow:** Server components fetch from Supabase → pass data as props → client components render with animations. ISR revalidation is 1 hour (`revalidate = 3600` on `/`, `/collections`, `/contact`); admin `revalidatePath()` calls push editor changes through sooner.
 
 ## Admin Panel
 
@@ -304,6 +306,8 @@ npm run lint         # Linter
 3. **Newsletter:** Not connected to any service — integrate with Mailchimp/ConvertKit
 4. **Hero.tsx:** Deprecated component, no longer imported — can be deleted
 5. **public/products/:** Legacy image files still exist locally; all images now served from Supabase Storage
+6. **Product image uploads** still go through the `createProduct` Server Action, so they are subject to Vercel's ~4.5 MB request-body cap. Reels already upload directly browser→Storage to avoid this; give product uploads the same treatment if large product photos ever start failing.
+7. **Storage ceiling:** project-wide Supabase storage limit is 50 MB (`fileSizeLimit`), so the `reels` bucket cannot exceed it. Reel upload guard + docs are set to 50 MB. Raising it requires changing the project storage config (may depend on plan).
 
 ---
 
@@ -311,7 +315,10 @@ npm run lint         # Linter
 **Version:** 3.1.0
 **Status:** Production Ready (admin panel + reels + image lightbox)
 
-### v3.1.0 changelog
-- **Reels:** new `reels` table + `reels` storage bucket, `/admin/reels` CRUD, homepage "On Instagram" section (`components/ReelsSection.tsx`) with autoplay-muted-loop 9:16 video and Instagram deep-linking (mobile `instagram://user?username=` app link with web fallback; desktop new secure tab). Instagram handle set once in `/admin/contact`.
-- **Lightbox:** `components/Lightbox.tsx` on the collections page — full-res image modal with backdrop/X/arrows/Esc and background scroll-lock.
-- **Square images:** product cards + home New Arrivals/Bestsellers switched from `aspect-[3/4]` to `aspect-square` so native 1600×1600 photos display fully (no edge cropping, no layout shift).
+### v3.1.0 changelog (July 2026 — from 3 uncle-requested updates in `requirements/`)
+- **Reels (Requirement 1):** new `reels` table + `reels` storage bucket (50 MB), `/admin/reels` CRUD, homepage "On Instagram" section (`components/ReelsSection.tsx`) with autoplay-muted-loop 9:16 video and Instagram deep-linking (mobile `instagram://user?username=` app link with web fallback; desktop new secure tab). Instagram handle managed once in `/admin/contact` (`instagram_handle` key, **live value `accendo_in`**), which also fixed the previously-blank footer/contact IG links via `lib/instagram.ts` `resolveInstagramUrl`.
+- **Lightbox (Requirement 2):** `components/Lightbox.tsx` on the collections page — full-res image modal with backdrop/X/arrows/Esc and background scroll-lock.
+- **Square images (Requirement 3):** product cards + home New Arrivals/Bestsellers switched from `aspect-[3/4]` to `aspect-square` so native 1600×1600 photos display fully (no edge cropping, no layout shift).
+- **Reel upload architecture + bug fix:** first version POSTed the video through the `createReel` Server Action and crashed on Vercel ("Application error: a client-side exception has occurred") because the platform caps Server Action bodies at ~4.5 MB. Reworked so `ReelsAdminClient` uploads the video (and optional poster) **directly from the browser** to the `reels` bucket via the authed browser client, then calls `createReel` with only text metadata + storage paths; whole flow is wrapped in try/catch with rollback + a live status label.
+- **Size limit correction:** client guard, bucket `file_size_limit`, and all docs aligned to the true 50 MB project storage ceiling (was mistakenly 100 MB). ~30s length is a recommendation, not an enforced limit.
+- **Commits:** `92d0412` (features), `4186493` (upload crash fix), `e646c9d` (50 MB correction). All deployed to production.
